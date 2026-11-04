@@ -85,6 +85,8 @@
 /* ===== Aturan saat mencetak ===== */
 @media print {
   @page { size: A4 landscape; margin: 5mm; }
+  @page tplpage { size: A4 landscape; margin: 0; }
+  body.print-tpl .tpage { page: tplpage; }
   html, body { background: #fff !important; }
   .no-print, .topbar, .toast, #modal-root, .filters, .page-head .btn { display: none !important; }
   .print-only { display: block !important; }

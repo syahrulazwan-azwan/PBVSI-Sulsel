@@ -572,5 +572,5 @@
     return renderBeach2(ctx);
   }
 
-  VB.sheets = { render: render, supported: supported };
+  VB.sheets = { render: render, supported: supported, buildCtx: buildCtx, halfData: halfData };
 })();

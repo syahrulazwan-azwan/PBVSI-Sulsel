@@ -234,12 +234,26 @@
     var maxSets = R.setsToWin * 2 - 1;
     if (!st.finished) for (var i = sets.length + 1; i <= maxSets; i++) sets.push(emptySet(R, i));
 
-    var one = VB.sheets.supported(m) && mode !== 'rinci';
+    var hasAsli = VB.forms && VB.forms.supported(m), hasResmi = VB.sheets.supported(m);
+    var cur = mode;
+    if (cur === 'asli' && !hasAsli) cur = hasResmi ? 'resmi' : 'rinci';
+    if (cur === 'resmi' && !hasResmi) cur = 'rinci';
+    var opts = (hasAsli ? '<option value="asli">Formulir asli (FIVB / BVB)</option>' : '') +
+      (hasResmi ? '<option value="resmi">Formulir gambar ulang (1 lembar)</option>' : '') +
+      '<option value="rinci">Rincian lengkap (2 halaman)</option>';
     var html = '<div class="print-toolbar no-print"><a class="btn" href="#/scoresheet/' + m.id + '">← Scoresheet</a><a class="btn" href="#/jadwal">Jadwal</a>' +
       '<button class="btn primary" id="doprint">🖨️ Cetak / Simpan PDF</button>' +
-      (VB.sheets.supported(m) ? '<select id="mode" class="mode"><option value="resmi"' + (one ? ' selected' : '') + '>Formulir resmi (1 lembar)</option><option value="rinci"' + (one ? '' : ' selected') + '>Rincian lengkap (2 halaman)</option></select>' : '') +
-      '<span class="muted small">Pilih kertas <b>A4</b>, orientasi <b>Landscape</b>, margin <b>Default/Minimum</b>, skala <b>100%</b>. ' + (st.sets.length ? '' : 'Pertandingan belum dicatat: hasil cetak berupa <b>blanko yang sudah terisi</b> nama tim, pemain &amp; wasit.') + '</span></div>';
-    if (one) {
+      '<select id="mode" class="mode">' + opts.replace('value="' + cur + '"', 'value="' + cur + '" selected') + '</select>' +
+      '<span class="muted small">Pilih kertas <b>A4</b>, orientasi <b>Landscape</b>, skala <b>100%</b>' + (cur === 'asli' ? ', margin <b>Tidak ada/None</b>' : '') + '. ' +
+      (cur === 'asli' && R.format !== 'indoor6' ? 'Formulir pantai asli terdiri dari <b>2 halaman</b> (bisa dicetak bolak-balik). ' : '') +
+      (st.sets.length ? '' : 'Pertandingan belum dicatat: hasil cetak berupa <b>blanko yang sudah terisi</b> nama tim, pemain &amp; wasit.') + '</span></div>';
+    if (cur === 'asli') {
+      html += '<div class="sheet-wrap tpl">' + VB.forms.render(m) + '</div>';
+      el.innerHTML = html; wire(el, m);
+      document.body.classList.add('print-tpl');
+      return;
+    }
+    if (cur === 'resmi') {
       html += '<div class="sheet-wrap one">' + VB.sheets.render(m) + '</div>';
       el.innerHTML = html;
       wire(el, m);
@@ -255,15 +269,16 @@
     wire(el, m);
   }
 
-  var mode = 'resmi';
+  var mode = 'asli';
   function wire(el, m) {
+    document.body.classList.remove('print-tpl');
     U.qs('#doprint', el).onclick = function () { window.print(); };
     var sel = U.qs('#mode', el);
     if (sel) sel.onchange = function () { mode = sel.value; render(el, m.id); };
     document.body.classList.add('printing-sheet');
   }
 
-  function destroy() { document.body.classList.remove('printing-sheet'); }
+  function destroy() { document.body.classList.remove('printing-sheet'); document.body.classList.remove('print-tpl'); }
 
   VB.views.cetak = { render: render, destroy: destroy };
 })();

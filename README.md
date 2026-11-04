@@ -15,7 +15,12 @@ Semua angka aturan di atas bisa diubah per pertandingan (menu *Ubah pertandingan
 ## Fitur
 
 - **Scoresheet live**: tombol +1 poin besar untuk HP/tablet, urutan servis & rotasi otomatis, putaran servis (*service rounds*), time-out, pergantian pemain (dengan pemeriksaan aturan), sanksi W/P/E/D dan penundaan (penalti otomatis memberi poin ke lawan), peringatan pindah lapangan dan TTO, forfeit/WO, catatan (*remarks*), dan **Undo**.
-- **Cetak formulir resmi 1 lembar** (A4 landscape), mengikuti formulir kertas:
+- **Cetak di atas formulir asli** (pilihan bawaan): hasil cetak memakai halaman formulir resmi yang dipakai di lapangan, lalu data ditulis dengan "tinta biru" di kotak-kotaknya:
+  - Indoor: *FIVB International Scoresheet* (FIVB_VB_Scoresheet_2013, 1 lembar, diperkecil dari A3 ke A4).
+  - Pantai 2x2: *BVB/11 – 2026 Edition* (2 halaman: set 1–2, lalu set 3 + teams, results, approval, remarks).
+  - Pantai 4x4: *BVB 4 vs 4* (2 halaman: set 1–3, lalu teams, sanctions, results, approval, remarks).
+  - Saat mencetak pilih margin **None/Tidak ada**. Gambar formulir ada di `img/tpl/`, koordinat kotaknya di `js/views/form-layouts.js`.
+- **Cetak formulir gambar ulang 1 lembar** (A4 landscape), mengikuti formulir kertas:
   - Indoor: *International Scoresheet* (sama seperti file Excel SCRST PRAPORPROV), set 1–5, sanctions, remarks, approval, results, dan daftar pemain + libero + ofisial.
   - Pantai 4x4: formulir BVB 4 vs 4 (3 set), ditambah daftar tim, sanksi, hasil, dan approval di bagian bawah.
   - Pantai 2x2: formulir BVB/11 (3 set) ditambah teams, results, approval, dan remarks.
