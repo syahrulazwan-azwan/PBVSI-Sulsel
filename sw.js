@@ -1,0 +1,36 @@
+/* Service worker: membuat aplikasi tetap bisa dibuka tanpa internet.
+ * Naikkan nomor VERSION setiap kali ada perubahan file agar perangkat mengambil versi baru. */
+var VERSION = 'v1.0.0';
+var CACHE = 'scoresheet-' + VERSION;
+var FILES = [
+  './', 'index.html', 'manifest.webmanifest',
+  'css/style.css', 'css/print.css',
+  'js/engine.js', 'js/store.js', 'js/ui.js', 'js/app.js',
+  'js/views/home.js', 'js/views/competitions.js', 'js/views/teams.js', 'js/views/referees.js',
+  'js/views/matches.js', 'js/views/standings.js', 'js/views/scoresheet.js', 'js/views/print.js', 'js/views/settings.js',
+  'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png'
+];
+
+self.addEventListener('install', function (e) {
+  e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(FILES); }).then(function () { return self.skipWaiting(); }));
+});
+
+self.addEventListener('activate', function (e) {
+  e.waitUntil(caches.keys().then(function (keys) {
+    return Promise.all(keys.filter(function (k) { return k !== CACHE; }).map(function (k) { return caches.delete(k); }));
+  }).then(function () { return self.clients.claim(); }));
+});
+
+// Ambil dari jaringan bila ada (agar selalu terbaru), jatuh ke cache bila offline
+self.addEventListener('fetch', function (e) {
+  if (e.request.method !== 'GET' || new URL(e.request.url).origin !== location.origin) return;
+  e.respondWith(
+    fetch(e.request).then(function (res) {
+      var copy = res.clone();
+      caches.open(CACHE).then(function (c) { c.put(e.request, copy); });
+      return res;
+    }).catch(function () {
+      return caches.match(e.request, { ignoreSearch: true }).then(function (r) { return r || caches.match('index.html'); });
+    })
+  );
+});

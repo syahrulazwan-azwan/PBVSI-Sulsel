@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Scoresheet Wasit Bola Voli</title>
+  <meta name="description" content="Aplikasi scoresheet digital bola voli indoor & pantai (2x2, 4x4), data wasit, jadwal, hasil dan klasemen.">
+  <meta name="theme-color" content="#1e3a8a">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/print.css">
+</head>
+<body>
+  <header class="topbar no-print" id="topbar">
+    <a class="brand" href="#/">
+      <img src="icons/icon.svg" alt="" width="28" height="28">
+      <span>Scoresheet <b>Wasit</b></span>
+    </a>
+    <nav class="mainnav" id="mainnav">
+      <a href="#/" data-nav="home">Beranda</a>
+      <a href="#/jadwal" data-nav="jadwal">Jadwal &amp; Hasil</a>
+      <a href="#/klasemen" data-nav="klasemen">Klasemen</a>
+      <a href="#/tim" data-nav="tim">Tim</a>
+      <a href="#/wasit" data-nav="wasit">Wasit</a>
+      <a href="#/kejuaraan" data-nav="kejuaraan">Kejuaraan</a>
+      <a href="#/pengaturan" data-nav="pengaturan">Data</a>
+    </nav>
+  </header>
+
+  <main id="app" class="app"></main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div id="modal-root"></div>
+
+  <script src="js/engine.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/views/home.js"></script>
+  <script src="js/views/competitions.js"></script>
+  <script src="js/views/teams.js"></script>
+  <script src="js/views/referees.js"></script>
+  <script src="js/views/matches.js"></script>
+  <script src="js/views/standings.js"></script>
+  <script src="js/views/scoresheet.js"></script>
+  <script src="js/views/print.js"></script>
+  <script src="js/views/settings.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

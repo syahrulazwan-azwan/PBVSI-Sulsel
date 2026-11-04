@@ -1,0 +1,108 @@
+/* ===== Lembar scoresheet (tampil di layar & dicetak) ===== */
+.print-toolbar { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; margin-bottom: .8rem; }
+.sheet-wrap { overflow-x: auto; background: #d9dee7; padding: 12px; border-radius: 12px; }
+.sheet { width: 287mm; margin: 0 auto; background: #fff; color: #000; padding: 5mm; font: 7.6pt/1.2 Arial, Helvetica, sans-serif; box-shadow: 0 2px 10px rgba(0,0,0,.2); }
+.sheet table { border-collapse: collapse; }
+.sheet td, .sheet th { border: .6pt solid #000; padding: .5pt 2pt; }
+.sheet th { background: #e9e9e9; font-weight: 700; }
+.sheet .lbl { font-size: 6.6pt; text-align: left; white-space: nowrap; }
+.sheet .c { text-align: center; }
+.sheet .b { font-weight: 700; }
+
+.sh-head { display: grid; grid-template-columns: 62mm minmax(0, 1fr); gap: 3mm; align-items: stretch; margin-bottom: 2mm; }
+.sh-title { border: 1.2pt solid #000; padding: 1.5mm 2mm; display: flex; flex-direction: column; justify-content: center; }
+.sh-title .t1 { font-weight: 800; font-size: 9.5pt; line-height: 1.15; }
+.sh-title .t2 { font-size: 7.5pt; margin-top: 1mm; }
+.hdr { width: 100%; }
+.hdr td { padding: 1pt 3pt; height: 5mm; }
+.hdr .k { font-size: 6.6pt; color: #333; }
+.hdr .teams { text-align: center; font-size: 9pt; }
+.hdr .vs { font-weight: 800; }
+.ab { display: inline-block; width: 4mm; height: 4mm; border: .8pt solid #000; border-radius: 50%; text-align: center; line-height: 4mm; font-size: 6.5pt; font-weight: 700; }
+.chk { margin-right: 4mm; }
+.chk i { display: inline-block; width: 3.5mm; height: 3.5mm; border: .8pt solid #000; text-align: center; font-style: normal; font-weight: 800; line-height: 3.5mm; vertical-align: middle; }
+
+.setblk { border: 1.2pt solid #000; margin-bottom: 1.6mm; break-inside: avoid; page-break-inside: avoid; }
+.set-head { display: flex; gap: 4mm; align-items: center; flex-wrap: wrap; background: #ececec; border-bottom: .8pt solid #000; padding: .6mm 2mm; font-size: 7pt; }
+.setname { font-weight: 800; font-size: 9.5pt; }
+.final-score { margin-left: auto; font-size: 8pt; }
+.set-head .extra { font-size: 6.8pt; }
+.halves { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.halves > .half { padding: 1mm; }
+.halves > .half + .half { border-left: 1.2pt solid #000; }
+.halves.stacked { grid-template-columns: 1fr; }
+.halves.stacked > .half + .half { border-left: 0; border-top: .8pt solid #000; }
+.half-head { display: flex; align-items: center; gap: 2mm; margin-bottom: .6mm; }
+.half-head .tname { font-weight: 800; font-size: 8.5pt; border: .8pt solid #000; padding: .3mm 2mm; min-width: 30mm; }
+.half-head .lbl { margin-left: auto; font-weight: 700; }
+.sr { display: inline-block; font-size: 6pt; line-height: 1.05; text-align: center; }
+.sr .ring, .circled { display: inline-block; border: .8pt solid #000; border-radius: 50%; padding: 0 1.3pt; font-weight: 800; }
+.half-body { display: flex; gap: 1mm; align-items: flex-start; }
+.lu td, .lu th { text-align: center; min-width: 6.5mm; height: 3.6mm; }
+.lu th.lbl, .lu td.lbl { min-width: 22mm; text-align: left; }
+.lu td.big { font-size: 9pt; font-weight: 800; height: 4.8mm; }
+.lu td.small { font-size: 6.5pt; }
+.lu .rnd td { font-size: 7pt; }
+.lu .ord { float: right; font-size: 6pt; }
+.pts td { width: 3.6mm; height: 2.85mm; padding: 0; text-align: center; font-size: 5.6pt; line-height: 2.85mm; position: relative; }
+.pts td.void { border: 0; }
+.pts td.hit { background: linear-gradient(to top right, transparent calc(50% - .5pt), #000 calc(50% - .5pt), #000 calc(50% + .5pt), transparent calc(50% + .5pt)); }
+.pts td.pen { color: #c00; }
+.pts td.final { outline: 1.2pt solid #000; outline-offset: -1.6pt; border-radius: 50%; font-weight: 800; }
+.pts.strip td { width: 3.75mm; height: 3.8mm; line-height: 3.8mm; }
+.to th, .to td { width: 9mm; text-align: center; height: 4mm; }
+.rows .lu.rowsl td, .rows .lu.rowsl th { min-width: 5.6mm; }
+.strip-wrap { display: flex; align-items: center; gap: 1.5mm; margin-top: .8mm; flex-wrap: wrap; }
+.strip-wrap .lbl { font-weight: 700; }
+.tobox { border: .6pt solid #000; padding: .2mm 2mm; min-width: 12mm; display: inline-block; text-align: center; }
+
+.bottom, .bottom2 { display: grid; gap: 1.6mm; margin-bottom: 1.6mm; break-inside: avoid; page-break-inside: avoid; }
+.bottom { grid-template-columns: 70mm 1fr 92mm; }
+.bottom2 { grid-template-columns: 1fr 70mm 70mm; }
+.box { border: 1.2pt solid #000; padding: 1mm; }
+.box-t { font-weight: 800; font-size: 8pt; text-align: center; border-bottom: .8pt solid #000; margin: -1mm -1mm 1mm; padding: .5mm; background: #ececec; }
+.box table { width: 100%; }
+.box td { height: 3.8mm; }
+.sanc td { text-align: center; }
+.ir { margin-top: 1mm; font-weight: 700; font-size: 6.8pt; }
+.note { font-size: 5.8pt; color: #333; margin-top: .6mm; }
+.rem ul { margin: 0; padding-left: 4mm; min-height: 18mm; }
+.res td { text-align: center; }
+.res .tot td { font-weight: 800; background: #f3f3f3; }
+.times { margin-top: 1mm; }
+.times td { font-size: 6.6pt; text-align: center; width: 33%; }
+.winner { margin-top: 1mm; font-size: 9pt; border: .8pt solid #000; padding: 1mm 2mm; }
+.winner .ws { float: right; font-weight: 800; font-size: 10pt; }
+.appr td.sig, .caps td.sig { width: 26mm; }
+.lj, .caps { margin-top: 1mm; }
+.lj td { width: 40%; }
+.lj td.lbl { width: 20%; font-weight: 700; }
+.roster td { height: 3.4mm; }
+.roster td:first-child { width: 7mm; }
+.sheet-foot { font-size: 6pt; color: #666; text-align: right; }
+.setblk.blank { opacity: .97; }
+
+/* ===== Aturan saat mencetak ===== */
+@media print {
+  @page { size: A4 landscape; margin: 6mm; }
+  html, body { background: #fff !important; }
+  .no-print, .topbar, .toast, #modal-root, .filters, .page-head .btn { display: none !important; }
+  .print-only { display: block !important; }
+  .print-only-cell { display: table-cell !important; }
+  .screen-only-cell { display: none !important; }
+  .app { max-width: none; padding: 0; }
+  .sheet-wrap { background: none; padding: 0; overflow: visible; border-radius: 0; }
+  .sheet { width: 282mm; padding: 0; box-shadow: none; margin: 0; overflow: hidden; }
+  .table-wrap { border: 0; overflow: visible; border-radius: 0; }
+  .tbl { font-size: 9pt; }
+  .tbl th, .tbl td { border: .6pt solid #555; padding: 2pt 4pt; }
+  .tbl th { background: #eee !important; color: #000; }
+  .badge { border: 0; background: none; padding: 0; }
+  .print-title { text-align: center; margin-bottom: 4mm; }
+  .print-title h2 { margin: 0; font-size: 13pt; }
+  .signer { margin: 8mm 10mm 0 auto; width: 70mm; text-align: center; }
+  .sig-space { height: 18mm; }
+  .card, .empty { box-shadow: none; }
+  .pool { break-inside: avoid; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
