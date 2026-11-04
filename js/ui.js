@@ -154,7 +154,25 @@
     return '<div class="empty"><div class="empty-ico">🏐</div><h3>' + esc(title) + '</h3><p>' + esc(text) + '</p>' + (actionHtml || '') + '</div>';
   }
 
+  var PBVSI_LOGO = 'img/pbvsi.png';
+  var LOGOS = {
+    porprov2026: { src: 'img/porprov-2026.jpg', mascot: 'img/maskot-porprov-2026.jpg', label: 'PORPROV SULSEL XVIII/2026 – Wajo-Bone' }
+  };
+  /** src logo kejuaraan ('' bila tidak ada) */
+  function compLogo(c) {
+    if (!c || !c.logo) return '';
+    if (LOGOS[c.logo]) return LOGOS[c.logo].src;
+    return /^data:image\//.test(c.logo) ? c.logo : '';
+  }
+  function compMascot(c) { return c && LOGOS[c.logo] ? LOGOS[c.logo].mascot : ''; }
+  /** Kepala cetak: logo PBVSI kiri, logo kejuaraan kanan */
+  function printTitle(c, title, sub) {
+    var l = compLogo(c);
+    return '<div class="print-only print-title pt-logos"><img src="' + PBVSI_LOGO + '" alt="PBVSI"><div><h2>' + title + '</h2>' + (sub || '') + '</div>' + (l ? '<img src="' + esc(l) + '" alt="">' : '<span></span>') + '</div>';
+  }
+
   root.VBUI = {
+    PBVSI_LOGO: PBVSI_LOGO, LOGOS: LOGOS, compLogo: compLogo, compMascot: compMascot, printTitle: printTitle,
     esc: esc, qs: qs, qsa: qsa, toast: toast, modal: modal, confirm: confirmDlg,
     download: download, pickFile: pickFile, fmtDate: fmtDate, today: today,
     catLabel: catLabel, formatLabel: formatLabel, formatOptions: formatOptions, catOptions: catOptions,

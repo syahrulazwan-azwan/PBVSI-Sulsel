@@ -73,7 +73,7 @@
       '<p class="muted no-print">Data wasit berlaku untuk semua kejuaraan. Penugasan diatur di setiap pertandingan (menu Jadwal). Rekap di bawah dihitung dari kejuaraan aktif' + (comp ? ': <b>' + esc(comp.name) + '</b>' : '') + '.</p>';
     if (!refs.length) html += U.emptyState('Belum ada data wasit', 'Tambahkan wasit, pencatat dan hakim garis.');
     else {
-      html += '<div class="print-only print-title"><h2>REKAP PENUGASAN WASIT</h2><div>' + esc(comp ? comp.name : '') + '</div></div>';
+      html += U.printTitle(comp, 'REKAP PENUGASAN WASIT', '<div>' + esc(comp ? comp.name : '') + '</div>');
       html += '<div class="table-wrap"><table class="tbl"><thead><tr><th>No</th><th>Nama</th><th>Lisensi</th><th>Asal</th><th class="c">W1</th><th class="c">W2</th><th class="c">Pencatat</th><th class="c">Hakim garis</th><th class="c">Total</th><th class="no-print"></th></tr></thead><tbody>';
       refs.forEach(function (r, i) {
         var d = dut[r.id] || { total: 0, roles: {} };

@@ -234,9 +234,17 @@
     var maxSets = R.setsToWin * 2 - 1;
     if (!st.finished) for (var i = sets.length + 1; i <= maxSets; i++) sets.push(emptySet(R, i));
 
+    var one = VB.sheets.supported(m) && mode !== 'rinci';
     var html = '<div class="print-toolbar no-print"><a class="btn" href="#/scoresheet/' + m.id + '">← Scoresheet</a><a class="btn" href="#/jadwal">Jadwal</a>' +
       '<button class="btn primary" id="doprint">🖨️ Cetak / Simpan PDF</button>' +
-      '<span class="muted small">Tips: di jendela cetak pilih kertas <b>A4</b>, orientasi <b>Landscape</b>, dan "Save as PDF" untuk menyimpan PDF.</span></div>';
+      (VB.sheets.supported(m) ? '<select id="mode" class="mode"><option value="resmi"' + (one ? ' selected' : '') + '>Formulir resmi (1 lembar)</option><option value="rinci"' + (one ? '' : ' selected') + '>Rincian lengkap (2 halaman)</option></select>' : '') +
+      '<span class="muted small">Pilih kertas <b>A4</b>, orientasi <b>Landscape</b>, margin <b>Default/Minimum</b>, skala <b>100%</b>. ' + (st.sets.length ? '' : 'Pertandingan belum dicatat: hasil cetak berupa <b>blanko yang sudah terisi</b> nama tim, pemain &amp; wasit.') + '</span></div>';
+    if (one) {
+      html += '<div class="sheet-wrap one">' + VB.sheets.render(m) + '</div>';
+      el.innerHTML = html;
+      wire(el, m);
+      return;
+    }
     html += '<div class="sheet-wrap"><div class="sheet fmt-' + R.format + '">' + header(m, comp, R, names);
     html += sets.map(function (s) { return setBlock(m, s, R, names); }).join('');
     html += '<div class="bottom">' + sanctionsBox(m, st, names) + remarksBox(st) + resultsBox(m, st, R, names) + '</div>';
@@ -244,7 +252,14 @@
     html += '<div class="sheet-foot">Dicetak dari aplikasi Scoresheet Wasit • ' + new Date().toLocaleString('id-ID') + '</div>';
     html += '</div></div>';
     el.innerHTML = html;
+    wire(el, m);
+  }
+
+  var mode = 'resmi';
+  function wire(el, m) {
     U.qs('#doprint', el).onclick = function () { window.print(); };
+    var sel = U.qs('#mode', el);
+    if (sel) sel.onchange = function () { mode = sel.value; render(el, m.id); };
     document.body.classList.add('printing-sheet');
   }
 

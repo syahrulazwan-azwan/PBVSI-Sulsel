@@ -55,8 +55,8 @@
 
   function loadSample() {
     var comp = S.upsert('competitions', {
-      name: 'Contoh Kejuaraan Bola Voli (Data Contoh)', organizer: 'Pengprov PBVSI', city: 'Makassar', venue: 'GOR / Pantai Contoh',
-      countryCode: 'SLS', startDate: U.today(), endDate: U.today(), signer: 'Ketua Bidang Pertandingan'
+      name: 'PORPROV SULSEL XVIII/2026 – BOLA VOLI (UJI COBA)', organizer: 'Pengprov PBVSI Sulawesi Selatan', city: 'Wajo – Bone', venue: 'GOR / Pantai (uji coba)',
+      countryCode: 'SLS', startDate: U.today(), endDate: U.today(), signer: 'Ketua Bidang Pertandingan', logo: 'porprov2026'
     });
     S.setSetting('activeCompetitionId', comp.id);
     var refs = ['Wasit Contoh Satu', 'Wasit Contoh Dua', 'Pencatat Contoh', 'Asisten Pencatat', 'Hakim Garis Satu', 'Hakim Garis Dua'].map(function (nm, i) {
@@ -73,7 +73,7 @@
     var off = { r1: refs[0].id, r2: refs[1].id, scorer: refs[2].id, ascorer: refs[3].id, lj1: refs[4].id, lj2: refs[5].id };
     var no = 1;
     function match(format, cat, pool, a, bb, time, court, play, seed) {
-      var m = { competitionId: comp.id, no: String(no++), date: U.today(), time: time, court: court, format: format, category: cat, pool: pool, age: 'Senior', stage: 'Pool Play', teamA: a.id, teamB: bb.id, officials: off, rules: E.defaultRules(format), events: [] };
+      var m = { competitionId: comp.id, no: String(no++), date: U.today(), time: time, court: court, format: format, category: cat, pool: pool, age: 'Senior', stage: 'Pool Play', teamA: a.id, teamB: bb.id, officials: off, rules: E.defaultRules(format), events: [], note: ['Merah – Putih', 'Biru – Kuning', 'Hijau – Hitam'][no % 3] };
       if (play) simulate(m, seed);
       return S.upsert('matches', m);
     }
@@ -84,7 +84,7 @@
     match('beach2', 'PA', 'A', b[0], b[2], '09.30-10.15', 'II', false);
     match('beach4', 'PI', 'CC', q[0], q[1], '13.00-13.45', 'III', true, 5);
     match('beach4', 'PI', 'CC', q[1], q[2], '13.45-14.30', 'III', false);
-    U.toast('Data contoh dimuat');
+    U.toast('Data uji coba dimuat');
   }
 
   function render(el) {
@@ -94,7 +94,7 @@
       '<div class="cards">' +
       '<div class="card"><div class="card-title">Simpan cadangan (backup)</div><p class="muted">Semua data tersimpan di perangkat/browser ini saja. Unduh backup secara rutin, terutama setelah pertandingan selesai.</p><div class="card-actions"><button class="btn primary" id="exp">Unduh backup (.json)</button></div></div>' +
       '<div class="card"><div class="card-title">Impor / gabungkan data</div><p class="muted">Pakai untuk memindahkan data ke perangkat lain, atau mengumpulkan hasil scoresheet dari tiap lapangan ke laptop panitia.</p><div class="card-actions"><button class="btn" id="imp">Pilih file .json</button></div></div>' +
-      '<div class="card"><div class="card-title">Data contoh</div><p class="muted">Menambahkan kejuaraan contoh berisi tim, wasit, dan beberapa pertandingan yang sudah selesai untuk latihan.</p><div class="card-actions"><button class="btn" id="sample">Muat data contoh</button></div></div>' +
+      '<div class="card"><div class="card-title">Data uji coba</div><p class="muted">Menambahkan kejuaraan uji coba PORPROV SULSEL XVIII/2026 berisi tim, wasit, dan beberapa pertandingan (sebagian sudah selesai) untuk latihan. Bisa dihapus kapan saja di menu Kejuaraan.</p><div class="card-actions"><button class="btn" id="sample">Muat data uji coba</button></div></div>' +
       '<div class="card"><div class="card-title">Hapus semua data</div><p class="muted">Menghapus seluruh data di perangkat ini. Unduh backup dulu!</p><div class="card-actions"><button class="btn danger" id="reset">Hapus semua</button></div></div>' +
       '</div><p class="muted small mt">Isi data: ' + raw.competitions.length + ' kejuaraan, ' + raw.teams.length + ' tim, ' + raw.referees.length + ' wasit, ' + raw.matches.length + ' pertandingan (' + (size / 1024).toFixed(1) + ' KB).</p>';
     U.qs('#exp', el).onclick = function () { U.download('backup-scoresheet-' + stamp() + '.json', S.exportAll()); };

@@ -87,7 +87,7 @@
       '<label>Tahap (beach)<input name="stage" list="stages" value="' + esc(m.stage) + '" placeholder="Pool Play"></label>' +
       '<datalist id="stages"><option value="Main Draw"><option value="Qualification"><option value="Pool Play"><option value="Winner Bracket"><option value="Classification"><option value="Semi-Final"><option value="Finals"></datalist>' +
       '<label>Kelompok umur<select name="age">' + ['Senior', 'Junior', 'Youth'].map(function (a) { return '<option' + (m.age === a ? ' selected' : '') + '>' + a + '</option>'; }).join('') + '</select></label>' +
-      '<label>Kostum / keterangan<input name="note" value="' + esc(m.note) + '"></label>' +
+      '<label>Kostum (warna baju) / keterangan<input name="note" value="' + esc(m.note) + '" placeholder="Merah – Putih"></label>' +
       '</div><h4 class="mt">Tim</h4><div class="grid-form">' +
       '<label>Tim A<select name="teamA"' + (locked ? ' disabled' : '') + '>' + teamOptions(m.competitionId, m.format, m.category, m.teamA) + '</select></label>' +
       '<label>Tim B<select name="teamB"' + (locked ? ' disabled' : '') + '>' + teamOptions(m.competitionId, m.format, m.category, m.teamB) + '</select></label>' +
@@ -163,6 +163,30 @@
     });
   }
 
+  /** Daftar anggota pool (dicetak di atas jadwal, seperti dokumen jadwal Porprov) */
+  function poolList(comp) {
+    var groups = {};
+    S.list('teams', function (t) {
+      return t.competitionId === comp.id && (!filt.format || t.format === filt.format) && (!filt.category || t.category === filt.category) && (!filt.pool || t.pool === filt.pool);
+    }).forEach(function (t) {
+      var key = U.formatLabel(t.format) + ' ' + U.catLabel(t.category);
+      ((groups[key] = groups[key] || {})[t.pool || '-'] = groups[key][t.pool || '-'] || []).push(t);
+    });
+    var keys = Object.keys(groups);
+    if (!keys.length) return '';
+    var h = '<div class="print-only pool-list">';
+    keys.forEach(function (k) {
+      if (keys.length > 1) h += '<div class="pl-cat">' + esc(k) + '</div>';
+      h += '<div class="pl-row">';
+      Object.keys(groups[k]).sort().forEach(function (p) {
+        h += '<div class="pl-pool"><b>POOL ' + esc(p) + '</b>' + groups[k][p].sort(function (a, b) { return a.name.localeCompare(b.name); })
+          .map(function (t, i) { return '<div>' + esc(p) + (i + 1) + '. ' + esc(t.name) + '</div>'; }).join('') + '</div>';
+      });
+      h += '</div>';
+    });
+    return h + '</div>';
+  }
+
   function render(el) {
     var comp = S.activeCompetition();
     var html = '<div class="page-head no-print"><h1>Jadwal &amp; Hasil</h1><div class="row gap"><button class="btn" id="print">Cetak jadwal</button><button class="btn primary" id="add">+ Pertandingan</button></div></div>';
@@ -183,11 +207,13 @@
     list.forEach(function (m) { maxSets = Math.max(maxSets, (m.rules ? m.rules.setsToWin * 2 - 1 : 3)); });
     maxSets = maxSets || 3;
 
-    html += '<div class="print-only print-title"><h2>JADWAL &amp; HASIL PERTANDINGAN ' + esc((filt.format ? U.formatLabel(filt.format) + ' ' : '') + (filt.category ? U.catLabel(filt.category) : '')).toUpperCase() + '</h2><div>' + esc(comp.name) + '</div><div>' + esc([comp.organizer, comp.city].filter(Boolean).join(' • ')) + '</div></div>';
+    html += U.printTitle(comp, 'JADWAL &amp; HASIL PERTANDINGAN ' + esc((filt.format ? U.formatLabel(filt.format) + ' ' : '') + (filt.category ? U.catLabel(filt.category) : '')).toUpperCase(),
+      '<div>' + esc(comp.name) + '</div><div>' + esc([comp.organizer, comp.city, [U.fmtDate(comp.startDate), U.fmtDate(comp.endDate)].filter(Boolean).join(' – ')].filter(Boolean).join(' • ')) + '</div>');
+    html += poolList(comp);
 
     if (!list.length) html += U.emptyState('Belum ada pertandingan', 'Tambahkan jadwal pertandingan, lalu buka scoresheet saat pertandingan dimulai.');
     else {
-      html += '<div class="table-wrap"><table class="tbl schedule"><thead><tr><th>Hari/Tgl</th><th>No.</th><th>Jam</th><th>Lap</th><th>PA/PI</th><th>Tim</th><th></th><th>Tim</th><th class="c">Hasil</th>';
+      html += '<div class="table-wrap"><table class="tbl schedule"><thead><tr><th>Hari/Tgl</th><th>No.</th><th>Jam</th><th>Lap</th><th>PA/PI</th><th>Tim</th><th class="c"><span class="print-inline">Kostum</span></th><th>Tim</th><th class="c">Hasil</th>';
       for (var i = 1; i <= maxSets; i++) html += '<th class="c print-only-cell">Set ' + i + '</th>';
       html += '<th class="screen-only-cell">Skor per set</th><th class="c">Total</th><th class="no-print">Status</th><th class="no-print"></th></tr></thead><tbody>';
       var lastDate = null;
@@ -198,7 +224,7 @@
         var setCells = cells.slice(1, cells.length - 1);
         var played = setCells.filter(function (c) { return c !== '-'; });
         html += '<tr class="' + (newDay ? 'day-start' : '') + '"><td class="nowrap">' + (newDay ? esc(U.fmtDate(m.date, true)) : '') + '</td><td>' + esc(m.no) + '</td><td class="nowrap">' + esc(m.time) + '</td><td>' + esc(m.court) + '</td><td class="nowrap">' + esc(m.category) + '<div class="muted small no-print">' + esc(U.formatLabel(m.format)) + (m.pool ? ' • ' + esc(m.pool) : '') + '</div></td>' +
-          '<td class="' + (winA ? 'win' : '') + '">' + esc(teamLabel(m, 'A')) + '</td><td class="muted c">vs</td><td class="' + (winB ? 'win' : '') + '">' + esc(teamLabel(m, 'B')) + '</td>' +
+          '<td class="' + (winA ? 'win' : '') + '">' + esc(teamLabel(m, 'A')) + '</td><td class="muted c"><span class="screen-inline">vs</span><span class="print-inline">' + esc(m.note || '') + '</span></td><td class="' + (winB ? 'win' : '') + '">' + esc(teamLabel(m, 'B')) + '</td>' +
           '<td class="c nowrap b">' + cells[0] + '</td>' +
           setCells.map(function (c) { return '<td class="c nowrap print-only-cell">' + c + '</td>'; }).join('') +
           '<td class="screen-only-cell small">' + (played.length ? played.join(', ') : '-') + '</td>' +

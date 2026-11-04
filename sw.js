@@ -1,14 +1,15 @@
 /* Service worker: membuat aplikasi tetap bisa dibuka tanpa internet.
  * Naikkan nomor VERSION setiap kali ada perubahan file agar perangkat mengambil versi baru. */
-var VERSION = 'v1.0.0';
+var VERSION = 'v1.2.0';
 var CACHE = 'scoresheet-' + VERSION;
 var FILES = [
   './', 'index.html', 'manifest.webmanifest',
-  'css/style.css', 'css/print.css',
+  'css/style.css', 'css/print.css', 'css/sheets.css',
   'js/engine.js', 'js/store.js', 'js/ui.js', 'js/app.js',
   'js/views/home.js', 'js/views/competitions.js', 'js/views/teams.js', 'js/views/referees.js',
-  'js/views/matches.js', 'js/views/standings.js', 'js/views/scoresheet.js', 'js/views/print.js', 'js/views/settings.js',
-  'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png'
+  'js/views/matches.js', 'js/views/standings.js', 'js/views/scoresheet.js', 'js/views/sheets.js', 'js/views/print.js', 'js/views/settings.js',
+  'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
+  'img/pbvsi.png', 'img/porprov-2026.jpg', 'img/maskot-porprov-2026.jpg'
 ];
 
 self.addEventListener('install', function (e) {

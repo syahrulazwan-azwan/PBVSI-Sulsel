@@ -58,7 +58,7 @@
     if (!comp) { el.innerHTML = html + U.emptyState('Belum ada kejuaraan', 'Buat kejuaraan terlebih dahulu.'); return; }
     html += '<div class="filters no-print"><select id="ff">' + U.formatOptions(filt.format, true) + '</select><select id="fc">' + U.catOptions(filt.category, true) + '</select></div>';
     html += '<p class="muted small no-print">Urutan: jumlah menang → nilai (Indoor 3-0/3-1 = 3, 3-2 = 2, kalah 2-3 = 1; Pantai menang = 2, kalah = 1, WO = 0) → rasio set → rasio poin. Hanya pertandingan antar tim dalam pool yang sama yang dihitung.</p>';
-    html += '<div class="print-only print-title"><h2>KLASEMEN</h2><div>' + esc(comp.name) + '</div></div>';
+    html += U.printTitle(comp, 'KLASEMEN', '<div>' + esc(comp.name) + '</div>');
     var any = false;
     Object.keys(E.FORMATS).forEach(function (f) {
       if (filt.format && f !== filt.format) return;

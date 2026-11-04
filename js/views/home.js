@@ -20,16 +20,20 @@
     var comp = S.activeCompetition();
     var html = '';
     if (!comp) {
-      html += '<section class="hero"><h1>Scoresheet Digital Bola Voli</h1>' +
-        '<p>Catat pertandingan Indoor 6x6, Pantai 2x2 dan Pantai 4x4 langsung di HP/tablet, lalu cetak scoresheet, jadwal, hasil dan klasemen.</p></section>' +
+      var P = U.LOGOS.porprov2026;
+      html += '<section class="hero event"><div class="hero-logos"><img src="' + U.PBVSI_LOGO + '" alt="PBVSI" class="lg-pbvsi"><img src="' + P.src + '" alt="PORPROV" class="lg-event"></div>' +
+        '<div class="hero-text"><div class="kicker">PORPROV SULSEL XVIII/2026 • WAJO – BONE</div><h1>Scoresheet Digital Wasit Bola Voli</h1>' +
+        '<p>Catat pertandingan Indoor 6x6, Pantai 2x2 dan Pantai 4x4 langsung di HP/tablet, lalu cetak scoresheet resmi 1 lembar, jadwal, hasil dan klasemen.</p>' +
+        '<div class="row gap"><button class="btn big light" id="sample2">▶ Coba dengan data uji coba</button><a class="btn big ghost-light" href="#/kejuaraan">Buat kejuaraan</a></div></div>' +
+        '<img src="' + P.mascot + '" alt="Maskot Si Gabus &amp; Dama" class="hero-mascot"></section>' +
         '<div class="steps">' +
         '<div class="step"><b>1</b><div><h3>Buat kejuaraan</h3><p>Nama kejuaraan, kota, tempat.</p></div></div>' +
         '<div class="step"><b>2</b><div><h3>Isi tim &amp; pemain</h3><p>Nama tim, nomor &amp; nama pemain, kapten, libero, pelatih.</p></div></div>' +
         '<div class="step"><b>3</b><div><h3>Isi data wasit</h3><p>Wasit 1, wasit 2, pencatat, hakim garis.</p></div></div>' +
         '<div class="step"><b>4</b><div><h3>Buat jadwal &amp; mulai scoresheet</h3><p>Hasil, klasemen dan cetakan terisi otomatis.</p></div></div></div>' +
-        '<div class="row gap mt"><a class="btn primary" href="#/kejuaraan">Mulai: buat kejuaraan</a><button class="btn" id="sample">Coba dengan data contoh</button></div>';
+        '<div class="row gap mt"><a class="btn primary" href="#/kejuaraan">Mulai: buat kejuaraan</a><button class="btn" id="sample">Coba dengan data uji coba</button></div>';
       el.innerHTML = html;
-      U.qs('#sample', el).onclick = function () { VB.views.pengaturan.loadSample(); location.hash = '#/jadwal'; };
+      U.qs('#sample', el).onclick = U.qs('#sample2', el).onclick = function () { VB.views.pengaturan.loadSample(); location.hash = '#/jadwal'; };
       return;
     }
     var all = S.list('matches', function (m) { return m.competitionId === comp.id; });
@@ -43,9 +47,13 @@
     var done = all.filter(function (m) { return J.status(m) === 'finished'; }).length;
     var nTeams = S.list('teams', function (t) { return t.competitionId === comp.id; }).length;
 
-    html += '<div class="page-head"><div><h1>' + esc(comp.name) + '</h1><div class="muted">' + esc([comp.organizer, comp.venue, comp.city].filter(Boolean).join(' • ')) + '</div></div>' +
-      '<a class="btn" href="#/kejuaraan">Ganti kejuaraan</a></div>';
-    html += '<div class="stats">' +
+    var lg = U.compLogo(comp), mas = U.compMascot(comp);
+    html += '<section class="hero event small-hero"><div class="hero-logos"><img src="' + U.PBVSI_LOGO + '" alt="PBVSI" class="lg-pbvsi">' + (lg ? '<img src="' + esc(lg) + '" alt="" class="lg-event">' : '') + '</div>' +
+      '<div class="hero-text"><h1>' + esc(comp.name) + '</h1><p>' + esc([comp.organizer, comp.venue, comp.city].filter(Boolean).join(' • ')) +
+      (comp.startDate ? '<br>' + esc([U.fmtDate(comp.startDate), U.fmtDate(comp.endDate)].filter(Boolean).join(' – ')) : '') + '</p>' +
+      '<div class="row gap"><a class="btn light" href="#/kejuaraan">Ganti / ubah kejuaraan</a></div></div>' +
+      (mas ? '<img src="' + mas + '" alt="Maskot" class="hero-mascot">' : '') + '</section>';
+    html += '<div class="stats mt">' +
       '<a class="stat" href="#/tim"><b>' + nTeams + '</b><span>Tim</span></a>' +
       '<a class="stat" href="#/jadwal"><b>' + all.length + '</b><span>Pertandingan</span></a>' +
       '<a class="stat" href="#/jadwal"><b>' + done + '</b><span>Selesai</span></a>' +

@@ -14,16 +14,57 @@
       '<label>Tanggal mulai<input type="date" name="startDate" value="' + esc(c.startDate) + '"></label>' +
       '<label>Tanggal selesai<input type="date" name="endDate" value="' + esc(c.endDate) + '"></label>' +
       '<label class="span2">Ketua bidang pertandingan (untuk tanda tangan jadwal)<input name="signer" value="' + esc(c.signer) + '" placeholder="Drs. Rustam Nur"></label>' +
+      '<label>Logo kejuaraan (tampil di beranda &amp; cetakan)<select name="logoSel" id="logosel">' +
+      '<option value="">Tidak ada</option>' +
+      Object.keys(U.LOGOS).map(function (k) { return '<option value="' + k + '"' + (c.logo === k ? ' selected' : '') + '>' + esc(U.LOGOS[k].label) + '</option>'; }).join('') +
+      '<option value="custom"' + (/^data:/.test(c.logo || '') ? ' selected' : '') + '>Unggah gambar sendiri…</option></select></label>' +
+      '<div class="logo-prev" id="logoprev"></div><input type="hidden" name="logoData" value="' + esc(/^data:/.test(c.logo || '') ? c.logo : '') + '">' +
       '</form>';
+  }
+
+  /** Pratinjau & unggah logo (diperkecil maks. 400 px agar hemat penyimpanan) */
+  function wireLogo(root) {
+    var sel = U.qs('#logosel', root), prev = U.qs('#logoprev', root), hid = U.qs('[name=logoData]', root);
+    function show() {
+      var src = sel.value === 'custom' ? hid.value : (U.LOGOS[sel.value] ? U.LOGOS[sel.value].src : '');
+      prev.innerHTML = (src ? '<img src="' + esc(src) + '" alt="">' : '') + (sel.value === 'custom' ? '<button type="button" class="btn small" id="pickLogo">Pilih gambar…</button>' : '');
+      var b = U.qs('#pickLogo', prev);
+      if (b) b.onclick = pick;
+    }
+    function pick() {
+      var inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*';
+      inp.onchange = function () {
+        var f = inp.files[0]; if (!f) return;
+        var r = new FileReader();
+        r.onload = function () {
+          var img = new Image();
+          img.onload = function () {
+            var k = Math.min(1, 400 / Math.max(img.width, img.height));
+            var cv = document.createElement('canvas'); cv.width = Math.round(img.width * k); cv.height = Math.round(img.height * k);
+            var g = cv.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height); g.drawImage(img, 0, 0, cv.width, cv.height);
+            hid.value = cv.toDataURL('image/jpeg', 0.85); show();
+          };
+          img.src = r.result;
+        };
+        r.readAsDataURL(f);
+      };
+      inp.click();
+    }
+    sel.onchange = function () { show(); if (sel.value === 'custom' && !hid.value) pick(); };
+    show();
   }
 
   function edit(c) {
     return U.modal({
       title: c ? 'Ubah Kejuaraan' : 'Kejuaraan Baru', body: form(c), wide: true,
+      onOpen: wireLogo,
       actions: [{ label: 'Batal', value: null }, {
         label: 'Simpan', cls: 'primary', onClick: function (root) {
           var d = U.formData(U.qs('form', root));
           if (!d.name) { U.toast('Nama kejuaraan wajib diisi', 'error'); return false; }
+          if (d.logoSel === 'custom' && !d.logoData) { U.toast('Pilih file gambar logo terlebih dahulu', 'error'); return false; }
+          d.logo = d.logoSel === 'custom' ? d.logoData : d.logoSel;
+          delete d.logoSel; delete d.logoData;
           var rec = Object.assign({}, c || {}, d);
           S.upsert('competitions', rec);
           if (!c) S.setSetting('activeCompetitionId', rec.id);
@@ -45,7 +86,9 @@
         var nm = S.list('matches', function (m) { return m.competitionId === c.id; }).length;
         var nt = S.list('teams', function (t) { return t.competitionId === c.id; }).length;
         var isA = active && active.id === c.id;
+        var lg = U.compLogo(c);
         html += '<div class="card ' + (isA ? 'active' : '') + '">' +
+          (lg ? '<img class="card-logo" src="' + esc(lg) + '" alt="">' : '') +
           '<div class="card-title">' + esc(c.name) + (isA ? ' <span class="badge ok">Aktif</span>' : '') + '</div>' +
           '<div class="muted">' + esc([c.organizer, c.venue, c.city].filter(Boolean).join(' • ')) + '</div>' +
           '<div class="muted">' + esc([U.fmtDate(c.startDate), U.fmtDate(c.endDate)].filter(Boolean).join(' – ')) + '</div>' +

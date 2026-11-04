@@ -1,0 +1,124 @@
+/* ===== Lembar resmi 1 halaman (A4 landscape: area cetak 287 x 200 mm) ===== */
+.sheet-wrap.one { padding: 10px; }
+.sheet1 { width: 287mm; height: 200mm; margin: 0 auto; background: #fff; color: #000; font: 6pt/1.1 Arial, Helvetica, sans-serif; box-sizing: border-box; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,.2); padding: 0; }
+.sheet1 table.g { border-collapse: collapse; table-layout: fixed; }
+.sheet1 .g td { border: .5pt solid #000; padding: 0 .5mm; overflow: hidden; white-space: nowrap; vertical-align: middle; line-height: 1.05; }
+.sheet1 .g td.nob { border: 0; }
+.sheet1 .b { font-weight: 700; }
+.sheet1 .c { text-align: center; }
+.sheet1 .r { text-align: right; }
+.sheet1 .sm { font-size: 5pt; }
+.sheet1 .big { font-size: 8.5pt; font-weight: 800; }
+.sheet1 .tl { font-size: 4.6pt; color: #222; font-weight: 400; }
+.sheet1 sup { font-size: 70%; }
+.sheet1 .ci { display: inline-block; width: 3.4mm; height: 3.4mm; line-height: 3.2mm; border: .7pt solid #000; border-radius: 50%; text-align: center; font-weight: 800; font-size: 6pt; vertical-align: middle; }
+.sheet1 .ring { display: inline-block; border: .7pt solid #000; border-radius: 50%; padding: 0 .5mm; font-weight: 800; line-height: 1; }
+.sheet1 .bx { display: inline-block; width: 3mm; height: 3mm; line-height: 3mm; border: .7pt solid #000; text-align: center; font-weight: 800; vertical-align: middle; }
+.sheet1 .srm { display: inline-block; font-size: 5pt; line-height: 1.05; text-align: center; vertical-align: middle; }
+.sheet1 .srm .ring { padding: 0 .3mm; }
+
+/* header indoor */
+.sheet1 .dist { font-size: 5.6pt; font-weight: 700; height: 3mm; }
+.sheet1 .hrow { display: flex; gap: 1.5mm; height: 17mm; }
+.sheet1 .hdr td { height: 4.1mm; font-size: 6pt; }
+.sheet1 .title { flex: 1; border: 1pt solid #000; display: flex; align-items: center; justify-content: space-between; gap: 1mm; padding: 0 1mm; text-align: center; }
+.sheet1 .title .tt { flex: 1; }
+.sheet1 .title .lg { height: 15mm; width: auto; max-width: 16mm; object-fit: contain; }
+.sheet1 .title .t0 { font-size: 6pt; }
+.sheet1 .title .t1 { font-size: 9.5pt; font-weight: 800; line-height: 1.05; }
+.sheet1 .title .t2 { font-size: 6pt; font-weight: 700; letter-spacing: .05em; }
+
+/* tabel set */
+.sheet1 .srow { display: flex; margin-top: .8mm; }
+.sheet1 .in-set, .sheet1 .b4-set, .sheet1 .b2-set { border: 1pt solid #000; }
+.sheet1 .rot { padding: 0; text-align: center; }
+.sheet1 .rot div { writing-mode: vertical-rl; transform: rotate(180deg); font-weight: 800; font-size: 5.5pt; margin: 0 auto; }
+.sheet1 .lb { font-size: 4.6pt; font-weight: 700; white-space: normal !important; line-height: 1 !important; }
+.sheet1 .setl { text-align: center; font-size: 6.5pt; line-height: 1.05; font-weight: 800; padding: 0 !important; }
+.sheet1 .setl.sm { font-size: 5pt; }
+.sheet1 .setl b { font-size: 9pt; }
+.sheet1 .setl.sw div { writing-mode: vertical-rl; margin: 0 auto; font-size: 6pt; letter-spacing: .08em; }
+.sheet1 .setn { font-size: 11pt; font-weight: 800; text-align: center; }
+.sheet1 td.hd { font-size: 6pt; }
+.sheet1 td.so { text-align: center; font-weight: 800; font-size: 7pt; }
+.sheet1 td.big { text-align: center; }
+.sheet1 td.rd { position: relative; text-align: center; font-size: 6pt; font-weight: 700; padding: 0; }
+.sheet1 td.rd i { position: absolute; left: .3mm; top: 0; font-style: normal; font-weight: 400; font-size: 3.6pt; color: #555; }
+.sheet1 td.rd .ov { position: absolute; right: .2mm; bottom: 0; font-size: 3.8pt; font-weight: 400; }
+.sheet1 td.pts { padding: 0; vertical-align: top; }
+.sheet1 .pg { width: 100%; height: 100%; border-collapse: collapse; table-layout: fixed; }
+.sheet1 .pg td { border: 0 !important; border-left: .4pt solid #000 !important; padding: 0 !important; text-align: center; font-size: 4.2pt; height: 1.7mm; line-height: 1.7mm; position: relative; }
+.sheet1 .b4-set .pg td { height: 1.85mm; line-height: 1.85mm; font-size: 4.6pt; }
+.sheet1 .pg td:first-child { border-left: 0 !important; }
+.sheet1 .pg td.x, .sheet1 .strip span.x { background: linear-gradient(to top right, transparent calc(50% - .45pt), #000 calc(50% - .45pt), #000 calc(50% + .45pt), transparent calc(50% + .45pt)); }
+.sheet1 .pg td.fin, .sheet1 .strip span.fin { outline: .8pt solid #000; outline-offset: -.5pt; border-radius: 50%; font-weight: 800; }
+.sheet1 .pg td.pen, .sheet1 .strip span.pen { color: #c00; font-weight: 800; }
+
+/* pantai 2x2 */
+.sheet1 .b2-set { margin-top: .7mm; }
+.sheet1 .b2-set tr.th td { height: 4.6mm; font-size: 4.8pt; text-align: center; white-space: normal; line-height: 1; }
+.sheet1 .b2-set td.setttl { text-align: left; font-size: 6pt; }
+.sheet1 .b2-set tr.sv td { height: 4mm; }
+.sheet1 .b2-set tr.pr td { height: 5.6mm; }
+.sheet1 .b2-set td.sw { border-left: 1pt solid #000; font-size: 4.8pt; }
+.sheet1 .strip { padding: 0 !important; }
+.sheet1 .strip span { display: inline-block; width: 4.65mm; text-align: center; font-size: 5.6pt; line-height: 4.4mm; }
+
+/* header pantai */
+.sheet1 .btitle { display: flex; align-items: center; gap: 2mm; font-size: 10pt; font-weight: 800; height: 9mm; }
+.sheet1 .btitle .tx { flex: 1; }
+.sheet1 .btitle .lg { height: 8.5mm; width: auto; }
+.sheet1 .btitle small { font-size: 7pt; }
+.sheet1 .btitle .ed { font-size: 6pt; font-weight: 400; }
+.sheet1.b4 .hdr td, .sheet1.b2 .hdr td { height: 4.2mm; }
+.sheet1 .b4-set { margin-top: .8mm; }
+
+/* blok bawah */
+.sheet1 .bottomrow { align-items: stretch; }
+.sheet1 .leftcol { width: 223.6mm; flex: none; }
+.sheet1 .brow { display: flex; gap: 1mm; margin-top: .8mm; align-items: stretch; }
+.sheet1 .blk { border: 1pt solid #000; display: flex; flex-direction: column; flex: none; }
+.sheet1 .blk table.g { width: 100%; }
+.sheet1 .blk .g td { height: 3.2mm; white-space: nowrap; text-overflow: ellipsis; }
+.sheet1 .blk tr.th td { font-weight: 700; text-align: center; font-size: 5pt; line-height: 1; white-space: normal; height: 3.6mm; }
+.sheet1 .ttl { font-weight: 800; font-size: 7pt; text-align: center; border-bottom: .8pt solid #000; height: 3.6mm; line-height: 3.6mm; }
+.sheet1 .irq { font-size: 5.2pt; font-weight: 700; padding: .4mm .6mm; border-bottom: .5pt solid #000; }
+.sheet1 .fn { font-size: 4.2pt; line-height: 1.1; padding: .4mm .6mm; }
+.sheet1 .midcol { display: flex; flex-direction: column; gap: 1mm; flex: none; }
+.sheet1 .rem { flex: 1; }
+.sheet1 .remtxt { font-size: 5.3pt; padding: .5mm .8mm; white-space: normal; line-height: 1.2; flex: 1; }
+.sheet1 .res tr.tot td { font-weight: 700; height: 5mm; }
+.sheet1 .res tr.win td { height: 5.5mm; font-size: 7pt; }
+.sheet1 .res td.big { font-size: 10pt; }
+.sheet1 .lj i, .sheet1 .appr i { font-style: normal; font-size: 4.5pt; }
+.sheet1 .sigrow td { height: 5mm !important; vertical-align: top; }
+.sheet1 .caps { margin-top: -.5pt; }
+.sheet1 .roster { width: 62.4mm; margin-left: 1mm; }
+.sheet1 .roster tr.hd td { height: 5mm; }
+.sheet1 .roster td { white-space: nowrap; }
+.sheet1 .teams .two { display: flex; }
+.sheet1 .teams .two table { width: 50%; }
+.sheet1 .coin { font-size: 5.6pt; font-weight: 700; padding: .6mm; border-top: .5pt solid #000; }
+
+/* lebar blok per format */
+.sheet1.in .sanc { width: 54mm; }
+.sheet1.in .midcol { width: 95.6mm; }
+.sheet1.in .res { width: 71mm; }
+.sheet1.in .rem { min-height: 18mm; }
+.sheet1.b4 .teams { width: 66mm; }
+.sheet1.b4 .sanc { width: 46mm; }
+.sheet1.b4 .res { width: 72mm; }
+.sheet1.b4 .midcol { width: 100mm; }
+.sheet1.b4 .midcol .appr { width: 100%; }
+.sheet1.b2 .teams { width: 66mm; }
+.sheet1.b2 .res { width: 72mm; }
+.sheet1.b2 .appr { width: 86mm; }
+.sheet1.b2 .rem { width: 58mm; flex: none; }
+
+@media print {
+  .sheet-wrap.one { padding: 0; }
+  .sheet1 { box-shadow: none; margin: 0; }
+}
+
+.sheet1 .sanc tr.th td { font-size: 6pt; }
+.sheet1 .sanc tr.th td small { display: block; font-size: 3.4pt; font-weight: 400; }

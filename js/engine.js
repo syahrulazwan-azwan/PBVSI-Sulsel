@@ -149,6 +149,15 @@
       }
     }
 
+    /** Catatan keadaan saat pindah lapangan (dipakai lembar cetak set penentuan) */
+    function snap(a, b, ev) {
+      return {
+        a: a, b: b, left: cur.left, time: ev.time,
+        rl: { A: cur.rounds.A.map(function (l) { return l.length; }), B: cur.rounds.B.map(function (l) { return l.length; }) },
+        sl: { A: cur.subs.A.length, B: cur.subs.B.length }
+      };
+    }
+
     function addPoint(team, kind, ev, silent) {
       var other = opp(team);
       if (cur.server !== team) {
@@ -171,13 +180,13 @@
       var every = cur.deciding ? R.decidingCourtSwitchEvery : R.courtSwitchEvery;
       if (every && sum % every === 0) {
         cur.left = opp(cur.left);
-        cur.switches.push({ a: a, b: b, left: cur.left });
+        cur.switches.push(snap(a, b, ev));
         st.notices.push({ type: 'switch', text: 'PINDAH LAPANGAN (skor ' + a + '–' + b + ')' });
       }
       if (R.decidingSideChangeAt && cur.deciding && !cur.sideChanged && Math.max(a, b) === R.decidingSideChangeAt) {
         cur.sideChanged = true;
         cur.left = opp(cur.left);
-        cur.switches.push({ a: a, b: b, left: cur.left });
+        cur.switches.push(snap(a, b, ev));
         st.notices.push({ type: 'switch', text: 'PINDAH LAPANGAN – salah satu tim mencapai ' + R.decidingSideChangeAt + ' poin (skor ' + a + '–' + b + ')' });
       }
       if (R.ttoAtSum && !cur.deciding && !cur.tto && sum === R.ttoAtSum) {
