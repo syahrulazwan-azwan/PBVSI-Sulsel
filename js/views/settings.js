@@ -81,5 +81,5 @@
     };
   }
 
-  VB.views.pengaturan = { render: render, loadSample: loadSample, stamp: stamp };
+  VB.views.pengaturan = { render: render, loadSample: loadSample, stamp: stamp, doImport: doImport };
 })();

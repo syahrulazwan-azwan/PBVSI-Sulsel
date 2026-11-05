@@ -26,7 +26,13 @@
   function sc(a, b) { return a + ':' + b; }
 
   function buildCtx(m) {
-    var comp = S.get('competitions', m.competitionId) || {};
+    var base = S.get('competitions', m.competitionId) || {};
+    // data kompetisi diisi per scoresheet; bila kosong pakai data kejuaraan lama
+    var comp = {
+      name: m.compName != null ? m.compName : base.name, city: m.city != null ? m.city : base.city,
+      venue: m.hall != null ? m.hall : base.venue, countryCode: m.ccode != null ? m.ccode : base.countryCode,
+      organizer: base.organizer || ''
+    };
     var R = m.rules || E.defaultRules(m.format);
     var names = VB.views.jadwal.names(m);
     var st = E.compute(m, names);

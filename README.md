@@ -5,7 +5,7 @@ Formulir sudah tercetak lengkap dengan data kejuaraan, tim, pemain dan wasit, ja
 
 | Format | Formulir yang dicetak | Halaman |
 |---|---|---|
-| Indoor 6x6 | FIVB International Scoresheet (FIVB_VB_Scoresheet_2013) | 1 (A4 landscape) |
+| Indoor 6x6 | Scoresheet Excel *SCRST PRAPORPROV* (International Scoresheet) | 1 (A4 landscape) |
 | Pantai 2x2 | BVB/11 – 2026 Edition | 2 (bisa bolak-balik) |
 | Pantai 4x4 | BVB 4 vs 4 | 2 (bisa bolak-balik) |
 
@@ -21,21 +21,19 @@ Poin, line-up, rotasi/service rounds, time-out, pergantian, sanksi dan hasil **d
 
 ## Cara memakai
 
-1. **Kejuaraan → + Kejuaraan**: nama, penyelenggara, kota, tempat, kode wilayah, logo.
-2. **Tim → + Tim**: nama & kode tim (mis. MRS), format, kategori, pool, daftar pemain (bisa **tempel dari Excel**), ofisial.
-3. **Wasit → + Wasit**: nama, lisensi, asal, kode asal.
-4. **Pertandingan & Cetak → + Pertandingan**: tanggal, jam, lapangan, tim A vs tim B, kostum, penugasan wasit.
-5. Klik **🖨️ Cetak** pada satu pertandingan, atau centang beberapa lalu **Cetak scoresheet terpilih** (bisa juga semua pertandingan hari ini dari Beranda).
-6. Di jendela cetak pilih **A4 – Landscape**, margin **None/Tidak ada**, skala **100%**.
+Aplikasi hanya punya 3 menu: **Scoresheet**, **Tim**, **Wasit**.
 
-Tersedia juga **Blanko kosong** (formulir asli tanpa data) dan **Cetak daftar jadwal** (berisi daftar anggota pool & kolom kostum).
-Mau mencoba dulu? **Beranda → Coba dengan data uji coba**.
+1. **Tim → + Tim**: nama & kode tim (mis. MRS), format, kategori, pool, daftar pemain (bisa **tempel dari Excel**: kolom No. dan Nama, tambahkan © untuk kapten dan (L) untuk libero), pelatih & ofisial.
+2. **Wasit → + Wasit**: nama, lisensi, asal, kode asal (mis. TKR).
+3. **Scoresheet → + Buat scoresheet**: nama kompetisi, kota, hall, kode wilayah (otomatis terisi dari scoresheet sebelumnya), no. pertandingan, tanggal, jam, lapangan, pool, tim A vs tim B, kostum, dan penugasan wasit.
+4. Klik **🖨️ Cetak** (atau centang beberapa lalu **Cetak terpilih**). Di jendela cetak pilih **A4 – Landscape**, margin **None/Tidak ada**, skala **100%**.
+5. Tombol **⧉** menyalin scoresheet (kompetisi, tanggal & wasit) untuk pertandingan berikutnya. **Blanko kosong** mencetak formulir tanpa data.
 
-> Data tersimpan di browser perangkat masing-masing (tidak di GitHub). Unduh backup secara rutin di menu **Data**.
+> Data tersimpan di browser perangkat masing-masing (tidak di GitHub). Pakai **Unduh backup / Impor backup** di bagian bawah halaman Scoresheet.
 
 ## Logo
 
-Logo PBVSI tampil di aplikasi dan di cetakan jadwal. Logo & maskot PORPROV SULSEL XVIII/2026 dipakai bila kejuaraan memilih logo tersebut (menu Kejuaraan). Pastikan penggunaan logo resmi sudah seizin panitia/PBVSI.
+Logo PBVSI serta logo & maskot PORPROV SULSEL XVIII/2026 tampil di halaman aplikasi. Pastikan penggunaan logo resmi sudah seizin panitia/PBVSI.
 
 ## Teknis
 

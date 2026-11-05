@@ -270,3 +270,12 @@ label.radio { display: flex; align-items: center; gap: .5rem; padding: .3rem 0; 
 .stats.three { grid-template-columns: repeat(3, 1fr); }
 .selbar { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; margin-bottom: .6rem; }
 .selbar #selinfo { flex: 1; min-width: 200px; }
+
+.hero.event.mini { padding: .9rem 1.1rem; }
+.hero.event.mini h1 { font-size: 1.35rem; margin: .1rem 0; }
+.hero.event.mini p { margin: .2rem 0 0; }
+.hero.event.mini .hero-logos { flex-direction: row; }
+.hero.event.mini .lg-pbvsi { width: 60px; height: 60px; }
+.hero.event.mini .lg-event { width: 62px; }
+.hero.event.mini .hero-mascot { width: 120px; }
+.footer-tools { display: flex; gap: .4rem; align-items: center; justify-content: flex-end; margin-top: 1rem; flex-wrap: wrap; }

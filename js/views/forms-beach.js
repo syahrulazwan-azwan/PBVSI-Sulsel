@@ -20,6 +20,7 @@
   }
   function remarkLines(ctx, extra) {
     var out = F().plain(ctx);
+    if (ctx.m.note) out.unshift('Kostum: ' + ctx.m.note);
     ctx.st.sanctions.filter(function (s) { return s.type === 'IR'; }).forEach(function (s) {
       out.push('Improper request ' + ctx.code(s.team) + ' (set ' + s.set + ', ' + sc(s.a, s.b) + ')');
     });

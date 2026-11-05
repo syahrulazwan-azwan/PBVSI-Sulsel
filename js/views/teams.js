@@ -98,7 +98,7 @@
 
   function edit(t) {
     var comp = S.activeCompetition();
-    if (!comp) { U.toast('Buat kejuaraan terlebih dahulu', 'error'); location.hash = '#/kejuaraan'; return Promise.resolve(); }
+    if (!comp) { comp = S.upsert('competitions', { name: 'Scoresheet' }); S.setSetting('activeCompetitionId', comp.id); }
     t = t || { competitionId: comp.id, format: filt.format || 'indoor6', category: filt.category || 'PA', players: [] };
     return U.modal({
       title: t.id ? 'Ubah Tim' : 'Tim Baru', body: form(t), wide: true, onOpen: wireForm,
@@ -115,18 +115,11 @@
   }
 
   function render(el) {
-    var comp = S.activeCompetition();
     var html = '<div class="page-head"><h1>Tim &amp; Pemain</h1><button class="btn primary" id="add">+ Tim</button></div>';
-    if (!comp) {
-      el.innerHTML = html + U.emptyState('Belum ada kejuaraan', 'Buat kejuaraan terlebih dahulu.', '<a class="btn primary" href="#/kejuaraan">Buat kejuaraan</a>');
-      U.qs('#add', el).onclick = function () { edit(null); };
-      return;
-    }
     html += '<div class="filters"><select id="ff">' + U.formatOptions(filt.format, true) + '</select>' +
-      '<select id="fc">' + U.catOptions(filt.category, true) + '</select>' +
-      '<span class="muted">' + esc(comp.name) + '</span></div>';
+      '<select id="fc">' + U.catOptions(filt.category, true) + '</select></div>';
     var teams = S.list('teams', function (t) {
-      return t.competitionId === comp.id && (!filt.format || t.format === filt.format) && (!filt.category || t.category === filt.category);
+      return (!filt.format || t.format === filt.format) && (!filt.category || t.category === filt.category);
     }).sort(function (a, b) { return (a.format + a.category + (a.pool || '') + a.name).localeCompare(b.format + b.category + (b.pool || '') + b.name); });
     if (!teams.length) html += U.emptyState('Belum ada tim', 'Tambahkan tim beserta daftar pemain dan ofisialnya. Data ini akan tercetak di scoresheet.');
     else {

@@ -90,132 +90,72 @@
     d.to.forEach(function (t, j) { if (H.T[1][j]) { var ab = t.split(':'); pen.colon(H.T[0], H.T[1][j], ab[0], ab[1], 9, 5); } });
   }
 
+  /** Indoor: formulir SCRST PRAPORPROV (Excel, A4). Hanya data jadwal/tim/wasit; sisanya diisi tangan. */
   function renderIndoor(ctx) {
-    var L = VB.FORM_LAYOUTS.indoor, pen = new Pen(), m = ctx.m, c = ctx.comp, st = ctx.st, h = L.hdr;
-    // --- kepala formulir
-    pen.t(h.comp[0], h.comp[1], c.name || '', { size: 12, align: 'l', max: 500 });
-    pen.t(h.city[0], h.city[1], c.city || '', { size: 10, align: 'l', max: 215 });
-    pen.t(h.ccode[0], h.ccode[1], c.countryCode || '', { size: 10 });
-    if (m.date) { var dp = m.date.split('-'); pen.t(h.date[0][0], h.date[0][1], dp[2], { size: 10 }); pen.t(h.date[1][0], h.date[1][1], dp[1], { size: 10 }); pen.t(h.date[2][0], h.date[2][1], dp[0].slice(2), { size: 10 }); }
-    var sh = schedHM(m); pen.t(h.time[0][0], h.time[0][1], sh[0], { size: 10 }); pen.t(h.time[1][0], h.time[1][1], sh[1], { size: 10 });
-    pen.t(h.hall[0], h.hall[1], c.venue || '', { size: 10, align: 'l', max: 150 });
-    pen.t(h.pool[0], h.pool[1], m.pool || '', { size: 10, max: 44 });
-    pen.t(h.matchNo[0], h.matchNo[1], m.no || '', { size: 11 });
+    var L = VB.FORM_LAYOUTS.indoor, pen = new Pen(), m = ctx.m, c = ctx.comp, h = L.hdr, fs = h.fs || 8;
     var A = ctx.sheetA, B = ctx.sheetB;
-    pen.t(h.codeL[0], h.codeL[1], ctx.code(A), { size: 12, max: 44 });
-    pen.t(h.codeR[0], h.codeR[1], ctx.code(B), { size: 12, max: 44 });
-    if (ctx.started) { pen.t(h.circL[0], h.circL[1], 'A', { size: 13 }); pen.t(h.circR[0], h.circR[1], 'B', { size: 13 }); }
-    if (m.category === 'PA') pen.cross(h.men[0], h.men[1], 4.5);
-    if (m.category === 'PI') pen.cross(h.women[0], h.women[1], 4.5);
+    // --- kepala formulir
+    pen.t(h.comp[0], h.comp[1], c.name || '', { size: fs + 0.5, align: 'l', max: h.compMax });
+    pen.t(h.city[0], h.city[1], c.city || '', { size: fs, align: 'l', max: h.cityMax });
+    pen.t(h.ccode[0], h.ccode[1], c.countryCode || '', { size: fs });
+    if (m.date) { var dp = m.date.split('-'); pen.t(h.dateText[0], h.dateText[1], dp[2] + '-' + dp[1] + '-' + dp[0].slice(2), { size: fs }); }
+    pen.t(h.timeText[0], h.timeText[1], m.time || '', { size: fs, max: 40 });
+    pen.t(h.hall[0], h.hall[1], c.venue || '', { size: fs, align: 'l', max: h.hallMax });
+    pen.t(h.pool[0], h.pool[1], m.pool || '', { size: fs, max: 56 });
+    pen.t(h.matchNo[0], h.matchNo[1], m.no || '', { size: fs + 1 });
+    if (!m.blank) {
+      pen.t(h.codeL[0], h.codeL[1], ctx.code(A), { size: fs + 1, max: 28 });
+      pen.t(h.codeR[0], h.codeR[1], ctx.code(B), { size: fs + 1, max: 28 });
+    }
+    var cr = h.cross || 3.2;
+    if (m.category === 'PA') pen.cross(h.men[0], h.men[1], cr);
+    if (m.category === 'PI') pen.cross(h.women[0], h.women[1], cr);
     var age = h[String(m.age || 'Senior').toLowerCase()];
-    if (age && !m.blank) pen.cross(age[0], age[1], 4.5);
+    if (age && !m.blank) pen.cross(age[0], age[1], cr);
 
-    // --- set 1–4
-    for (var k = 1; k <= 4; k++) {
-      var set = st.sets[k - 1];
-      if (!set) continue;
-      var lft = k % 2 ? A : B, rgt = E.opp(lft);
-      var dl = VB.sheets.halfData(ctx, set, lft), dr = VB.sheets.halfData(ctx, set, rgt);
-      dl.name = ctx.code(lft); dr.name = ctx.code(rgt);
-      inHalf(pen, ctx, L.sets[k - 1][0], dl, { time: set.start });
-      inHalf(pen, ctx, L.sets[k - 1][1], dr, { time: set.end });
-    }
-    // --- set 5 (dengan kolom pindah lapangan)
-    var s5 = st.sets[4];
-    if (s5) {
-      var l5 = s5.leftAtStart, r5 = E.opp(l5), sw = s5.switches.length > 0;
-      var d1 = VB.sheets.halfData(ctx, s5, l5, sw ? 1 : 0), d2 = VB.sheets.halfData(ctx, s5, r5);
-      d1.name = ctx.code(l5); d2.name = ctx.code(r5); d1.letter = ctx.sheetLetter(l5); d2.letter = ctx.sheetLetter(r5);
-      inHalf(pen, ctx, L.set5[0], d1, { time: s5.start });
-      inHalf(pen, ctx, L.set5[1], d2, { time: s5.end });
-      if (sw) {
-        var d3 = VB.sheets.halfData(ctx, s5, l5, 2);
-        d3.lineup = s5.lineup[l5].slice(); d3.letter = ctx.sheetLetter(l5); d3.sr = '';
-        d3.atSwitchPts = l5 === 'A' ? s5.switches[0].a : s5.switches[0].b;
-        inHalf(pen, ctx, L.set5[2], d3, {});
-      }
-    }
-
-    // --- sanksi
-    var sc = L.sanc, list = sanctionsList(ctx);
-    list.slice(0, sc.rows.length - 1).forEach(function (s, i) {
-      var y = (sc.rows[i] + sc.rows[i + 1]) / 2;
-      var who = (s.type === 'DW' || s.type === 'DP') ? 'D' : (s.who || 'T');
-      var col = { W: 0, DW: 0, P: 1, DP: 1, E: 2, D: 3 }[s.type];
-      pen.t(sc.cols[col], y, who, { size: 9 });
-      pen.t(sc.cols[4], y, ctx.sheetLetter(s.team) || s.team, { size: 9 });
-      pen.t(sc.cols[5], y, s.set, { size: 9 });
-      pen.colon(sc.cols[6], y, s.a, s.b, 9, 6);
-    });
-    st.sanctions.filter(function (s) { return s.type === 'IR'; }).forEach(function (s) {
-      var p = ctx.sheetLetter(s.team) === 'B' ? sc.irB : sc.irA; pen.cross(p[0], p[1], 4);
-    });
-    // --- remarks
+    // --- remarks (wasit cadangan bila tidak ada barisnya, catatan)
     var rm = L.rem, lines = plain(ctx);
-    if (list.length > sc.rows.length - 1) lines.push('Sanksi lain: ' + list.slice(sc.rows.length - 1).map(function (s) { return s.type + ' ' + (s.who || '') + ' tim ' + ctx.sheetLetter(s.team) + ' set ' + s.set + ' (' + s.a + ':' + s.b + ')'; }).join('; '));
-    var ref0 = ref(ctx, 'reserve'); if (ref0.name) lines.push('Wasit cadangan: ' + ref0.name + (ref0.code ? ' (' + ref0.code + ')' : ''));
+    var ap = L.appr, keys = ap.keys || ['r1', 'r2', 'scorer', 'ascorer'];
+    if (keys.indexOf('reserve') < 0) { var r0 = ref(ctx, 'reserve'); if (r0.name) lines.push('Wasit cadangan: ' + r0.name + (r0.code ? ' (' + r0.code + ')' : '')); }
+    if (m.note) lines.unshift('Kostum: ' + m.note);
     lines.slice(0, rm.rows.length + 1).forEach(function (ln, i) {
-      if (i === 0) pen.t(rm.first[0], rm.first[1], ln, { size: 8.5, align: 'l', bold: false, max: rm.x1 - rm.first[0] });
-      else pen.t(rm.x0, rm.rows[i - 1], ln, { size: 8.5, align: 'l', bold: false, max: rm.x1 - rm.x0 });
+      if (i === 0) pen.t(rm.first[0], rm.first[1], ln, { size: rm.fs || 7, align: 'l', bold: false, max: rm.x1 - rm.first[0] });
+      else pen.t(rm.x0, rm.rows[i - 1], ln, { size: rm.fs || 7, align: 'l', bold: false, max: rm.x1 - rm.x0 });
     });
     // --- approval
-    var ap = L.appr;
-    ['r1', 'r2', 'scorer', 'ascorer'].forEach(function (k, i) {
-      var r = ref(ctx, k); pen.t(ap.nameX, ap.rows[i], r.name || '', { size: 10, align: 'l', max: 205 }); pen.t(ap.countryX, ap.rows[i], r.code || r.origin || '', { size: 9, max: 48 });
+    keys.forEach(function (k, i) {
+      var r = ref(ctx, k);
+      pen.t(ap.nameX, ap.rows[i], r.name || '', { size: ap.fs || 7, align: 'l', max: ap.nameMax || 200 });
+      pen.t(ap.countryX, ap.rows[i], r.code || r.origin || '', { size: (ap.fs || 7) - 0.5, max: 36 });
     });
-    ['lj1', 'lj2', 'lj3', 'lj4'].forEach(function (k, i) { var r = ref(ctx, k), p = ap.lj[i]; pen.t(p[0], p[1], r.name || '', { size: 9, align: p[2], max: 185 }); });
-    // --- hasil
-    var rs = L.res, sm = E.summary(st), any = st.sets.length > 0;
-    if (any) {
-      pen.t(rs.teamL[0], rs.teamL[1], ctx.code(A), { size: 11, max: 42 });
-      pen.t(rs.teamR[0], rs.teamR[1], ctx.code(B), { size: 11, max: 42 });
-      var tot = [0, 0, 0, 0, 0, 0, 0, 0];
-      st.sets.forEach(function (s, i) {
-        if (i >= rs.rows.length) return;
-        var done = !!s.end, y = rs.rows[i];
-        var v = [s.timeouts[A].length, s.subs[A].length, done ? (s.winner === A ? 1 : 0) : '', s.score[A], s.score[B], done ? (s.winner === B ? 1 : 0) : '', s.subs[B].length, s.timeouts[B].length];
-        [0, 1, 2, 3].forEach(function (j) { pen.t(rs.cols[j], y, v[j], { size: 10 }); });
-        [4, 5, 6, 7].forEach(function (j) { pen.t(rs.cols[j + 1], y, v[j], { size: 10 }); });
-        if (done) pen.t(rs.cols[4], y, E.minutesBetween(s.start, s.end), { size: 10 });
-        v.forEach(function (x, j) { tot[j] += +x || 0; });
-      });
-      [0, 1, 2, 3].forEach(function (j) { pen.t(rs.cols[j], rs.tot, tot[j], { size: 10 }); });
-      [4, 5, 6, 7].forEach(function (j) { pen.t(rs.cols[j + 1], rs.tot, tot[j], { size: 10 }); });
-      pen.t(rs.totDur[0], rs.totDur[1], sm.duration, { size: 10 });
-      var s0 = hm(st.startTime); pen.t(rs.start[0][0], rs.start[0][1], s0[0], { size: 9 }); pen.t(rs.start[1][0], rs.start[1][1], s0[1], { size: 9 });
-      if (st.finished) {
-        var e0 = hm(st.endTime); pen.t(rs.end[0][0], rs.end[0][1], e0[0], { size: 9 }); pen.t(rs.end[1][0], rs.end[1][1], e0[1], { size: 9 });
-        pen.t(rs.dur[0][0], rs.dur[0][1], Math.floor(sm.matchMinutes / 60), { size: 9 }); pen.t(rs.dur[1][0], rs.dur[1][1], sm.matchMinutes % 60, { size: 9 });
-        pen.t(rs.winner[0], rs.winner[1], ctx.code(st.winner), { size: 11, max: 44 });
-        pen.t(rs.loserSets[0], rs.loserSets[1], st.setsWon[E.opp(st.winner)], { size: 12 });
-        if (st.setsWon[st.winner] !== 3) pen.t(rs.winSets[0], rs.winSets[1] - 9, st.setsWon[st.winner], { size: 9 });
-      }
-    }
+    ['lj1', 'lj2', 'lj3', 'lj4'].forEach(function (k, i) { var r = ref(ctx, k), p = ap.lj[i]; pen.t(p[0], p[1], r.name || '', { size: (ap.fs || 7) - 0.5, align: p[2], bold: false, max: ap.ljMax || 180 }); });
+
     // --- daftar pemain
-    var ro = L.roster;
-    pen.t(ro.codeL[0], ro.codeL[1], ctx.code(A), { size: 11, max: 44 });
-    pen.t(ro.codeR[0], ro.codeR[1], ctx.code(B), { size: 11, max: 44 });
-    if (ctx.started) { pen.t(ro.circL[0], ro.circL[1], 'A', { size: 12 }); pen.t(ro.circR[0], ro.circR[1], 'B', { size: 12 }); }
+    var ro = L.roster, rf = ro.fs || 6.5;
+    if (!m.blank) {
+      pen.t(ro.codeL[0], ro.codeL[1], ctx.code(A), { size: rf + 2, max: 50 });
+      pen.t(ro.codeR[0], ro.codeR[1], ctx.code(B), { size: rf + 2, max: 50 });
+    }
     [[A, ro.noL, ro.nameL, ro.offL, 'r'], [B, ro.noR, ro.nameR, ro.offR, 'l']].forEach(function (cfg) {
       var t = ctx.team[cfg[0]] || {}, ps = t.players || [];
       var reg = ps.filter(function (p) { return !p.libero; }), lib = ps.filter(function (p) { return p.libero; });
       reg.slice(0, ro.rows.length - 1).forEach(function (p, i) {
         var y = (ro.rows[i] + ro.rows[i + 1]) / 2;
-        pen.t(cfg[1], y, p.no, { size: 9.5 });
-        pen.t(cfg[2], y, p.name + (p.captain ? ' ©' : ''), { size: 8.5, align: 'l', max: 95 });
+        pen.t(cfg[1], y, p.no, { size: rf + 0.5 });
+        pen.t(cfg[2], y, p.name + (p.captain ? ' ©' : ''), { size: rf, align: 'l', max: ro.nameMax });
       });
-      lib.slice(0, 2).forEach(function (p, i) {
+      lib.slice(0, ro.lib.length - 1).forEach(function (p, i) {
         var y = (ro.lib[i] + ro.lib[i + 1]) / 2;
-        pen.t(cfg[1], y, p.no, { size: 9.5 });
-        pen.t(cfg[2], y, p.name + (p.captain ? ' ©' : ''), { size: 8.5, align: 'l', max: 95 });
+        pen.t(cfg[1], y, p.no, { size: rf + 0.5 });
+        pen.t(cfg[2], y, p.name + (p.captain ? ' ©' : ''), { size: rf, align: 'l', max: ro.nameMax });
       });
       var off = t.officials || {};
       ['C', 'AC1', 'AC2', 'T', 'M'].forEach(function (k, i) {
         var y = (ro.off[i] + ro.off[i + 1]) / 2;
-        pen.t(cfg[3], y, off[k] || '', { size: 8, align: cfg[4], bold: false, max: 100 });
+        pen.t(cfg[3], y, off[k] || '', { size: rf - 0.5, align: cfg[4], bold: false, max: ro.offMax });
       });
     });
-    return page(L, pen, 'a3');
+    return page(L, pen, 'a4');
   }
 
   // -------------------------------------------------------------- publik

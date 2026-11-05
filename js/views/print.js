@@ -22,12 +22,12 @@
       matches = ids.map(function (x) { return S.get('matches', x); }).filter(Boolean);
       title = matches.length === 1 ? '#' + matches[0].no + ' ' + VB.views.jadwal.teamLabel(matches[0], 'A') + ' vs ' + VB.views.jadwal.teamLabel(matches[0], 'B') : matches.length + ' pertandingan';
     }
-    if (!matches.length) { el.innerHTML = U.emptyState('Pertandingan tidak ditemukan', 'Mungkin sudah dihapus.', '<a class="btn" href="#/jadwal">Kembali</a>'); return; }
+    if (!matches.length) { el.innerHTML = U.emptyState('Pertandingan tidak ditemukan', 'Mungkin sudah dihapus.', '<a class="btn" href="#/">Kembali</a>'); return; }
 
     var pages = 0;
     matches.forEach(function (m) { pages += m.format === 'indoor6' ? 1 : 2; });
     var hasBeach = matches.some(function (m) { return m.format !== 'indoor6'; });
-    var html = '<div class="print-toolbar no-print"><a class="btn" href="#/jadwal">← Pertandingan</a>' +
+    var html = '<div class="print-toolbar no-print"><a class="btn" href="#/">← Scoresheet</a>' +
       '<button class="btn primary" id="doprint">🖨️ Cetak / Simpan PDF</button>' +
       '<span><b>' + esc(title) + '</b> • ' + pages + ' halaman</span>' +
       '<span class="muted small">Di jendela cetak pilih kertas <b>A4</b>, orientasi <b>Landscape</b>, margin <b>None/Tidak ada</b>, skala <b>100%</b>.' +

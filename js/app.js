@@ -5,13 +5,12 @@
   var current = null;
 
   var routes = {
-    '': 'home', jadwal: 'jadwal', tim: 'tim', wasit: 'wasit',
-    kejuaraan: 'kejuaraan', pengaturan: 'pengaturan', cetak: 'cetak'
+    '': 'jadwal', jadwal: 'jadwal', tim: 'tim', wasit: 'wasit', cetak: 'cetak'
   };
 
   function route() {
     var parts = (location.hash || '#/').replace(/^#\/?/, '').split('/');
-    var name = routes[parts[0]] || 'home';
+    var name = routes[parts[0]] || 'jadwal';
     var view = VB.views[name];
     if (current && current.destroy) current.destroy();
     current = view;
