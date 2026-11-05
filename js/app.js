@@ -5,8 +5,8 @@
   var current = null;
 
   var routes = {
-    '': 'home', jadwal: 'jadwal', klasemen: 'klasemen', tim: 'tim', wasit: 'wasit',
-    kejuaraan: 'kejuaraan', pengaturan: 'pengaturan', scoresheet: 'scoresheet', cetak: 'cetak'
+    '': 'home', jadwal: 'jadwal', tim: 'tim', wasit: 'wasit',
+    kejuaraan: 'kejuaraan', pengaturan: 'pengaturan', cetak: 'cetak'
   };
 
   function route() {
@@ -17,10 +17,10 @@
     current = view;
     var el = U.qs('#app');
     el.className = 'app view-' + name;
-    document.body.classList.toggle('fullscreen-view', name === 'scoresheet');
+
     U.qsa('#mainnav a').forEach(function (a) {
       var nav = a.dataset.nav;
-      a.classList.toggle('active', nav === name || (nav === 'jadwal' && (name === 'scoresheet' || name === 'cetak')));
+      a.classList.toggle('active', nav === name || (nav === 'jadwal' && name === 'cetak'));
     });
     try {
       view.render(el, parts[1]);

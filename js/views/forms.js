@@ -107,8 +107,8 @@
     if (ctx.started) { pen.t(h.circL[0], h.circL[1], 'A', { size: 13 }); pen.t(h.circR[0], h.circR[1], 'B', { size: 13 }); }
     if (m.category === 'PA') pen.cross(h.men[0], h.men[1], 4.5);
     if (m.category === 'PI') pen.cross(h.women[0], h.women[1], 4.5);
-    var age = m.age || 'Senior';
-    pen.cross(h[age.toLowerCase()][0], h[age.toLowerCase()][1], 4.5);
+    var age = h[String(m.age || 'Senior').toLowerCase()];
+    if (age && !m.blank) pen.cross(age[0], age[1], 4.5);
 
     // --- set 1–4
     for (var k = 1; k <= 4; k++) {

@@ -267,3 +267,6 @@ label.radio { display: flex; align-items: center; gap: .5rem; padding: .3rem 0; 
   .hero-text .row { justify-content: center; }
   .hero-mascot, .small-hero .hero-mascot { width: 200px; max-width: 70%; margin: 0 auto; }
 }
+.stats.three { grid-template-columns: repeat(3, 1fr); }
+.selbar { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; margin-bottom: .6rem; }
+.selbar #selinfo { flex: 1; min-width: 200px; }

@@ -1,81 +1,46 @@
-# Scoresheet Wasit Bola Voli
+# Cetak Scoresheet Wasit Bola Voli
 
-Aplikasi web untuk mencatat pertandingan bola voli secara digital, lalu mencetak scoresheet dengan susunan seperti formulir resmi.
+Aplikasi web sederhana untuk **mencetak scoresheet asli** yang nanti **diisi manual** (pulpen) oleh pencatat di lapangan.
+Formulir sudah tercetak lengkap dengan data kejuaraan, tim, pemain dan wasit, jadi pencatat tinggal mengisi jalannya pertandingan.
 
-Format yang didukung:
+| Format | Formulir yang dicetak | Halaman |
+|---|---|---|
+| Indoor 6x6 | FIVB International Scoresheet (FIVB_VB_Scoresheet_2013) | 1 (A4 landscape) |
+| Pantai 2x2 | BVB/11 – 2026 Edition | 2 (bisa bolak-balik) |
+| Pantai 4x4 | BVB 4 vs 4 | 2 (bisa bolak-balik) |
 
-| Format | Set | Poin per set | Set penentuan | Time-out | Pergantian | Pindah lapangan |
-|---|---|---|---|---|---|---|
-| **Indoor 6x6** | 3 dari 5 | 25 | 15 | 2 per set | 6 per set (aturan berpasangan) | set ke-5 saat poin 8 |
-| **Pantai 2x2** | 2 dari 3 | 21 | 15 | 1 per set | – | tiap 7 poin (set 3: tiap 5), TTO di jumlah 21 |
-| **Pantai 4x4** | 2 dari 3 | 21 | 15 | 1 per set | 4 per set | tiap 7 poin (set 3: tiap 5), TTO di jumlah 21 |
+## Yang otomatis tercetak di formulir
 
-Semua angka aturan di atas bisa diubah per pertandingan (menu *Ubah pertandingan → Aturan pertandingan*), misalnya bila juklak kejuaraan berbeda.
+- Nama kejuaraan, kota, hall/beach, kode wilayah, tanggal, jam, no. pertandingan, lapangan, pool/tahap
+- Putra/Putri, kelompok umur
+- Kode/nama tim A dan B (Pantai 2x2: nama kedua pemain)
+- Daftar pemain: nomor, nama, kapten ©, libero; pelatih & ofisial (C, AC1, AC2, T, M)
+- Wasit 1, wasit 2, pencatat, asisten pencatat (nama & asal), hakim garis 1–4; wasit cadangan di Remarks
 
-## Fitur
-
-- **Scoresheet live**: tombol +1 poin besar untuk HP/tablet, urutan servis & rotasi otomatis, putaran servis (*service rounds*), time-out, pergantian pemain (dengan pemeriksaan aturan), sanksi W/P/E/D dan penundaan (penalti otomatis memberi poin ke lawan), peringatan pindah lapangan dan TTO, forfeit/WO, catatan (*remarks*), dan **Undo**.
-- **Cetak di atas formulir asli** (pilihan bawaan): hasil cetak memakai halaman formulir resmi yang dipakai di lapangan, lalu data ditulis dengan "tinta biru" di kotak-kotaknya:
-  - Indoor: *FIVB International Scoresheet* (FIVB_VB_Scoresheet_2013, 1 lembar, diperkecil dari A3 ke A4).
-  - Pantai 2x2: *BVB/11 – 2026 Edition* (2 halaman: set 1–2, lalu set 3 + teams, results, approval, remarks).
-  - Pantai 4x4: *BVB 4 vs 4* (2 halaman: set 1–3, lalu teams, sanctions, results, approval, remarks).
-  - Saat mencetak pilih margin **None/Tidak ada**. Gambar formulir ada di `img/tpl/`, koordinat kotaknya di `js/views/form-layouts.js`.
-- **Cetak formulir gambar ulang 1 lembar** (A4 landscape), mengikuti formulir kertas:
-  - Indoor: *International Scoresheet* (sama seperti file Excel SCRST PRAPORPROV), set 1–5, sanctions, remarks, approval, results, dan daftar pemain + libero + ofisial.
-  - Pantai 4x4: formulir BVB 4 vs 4 (3 set), ditambah daftar tim, sanksi, hasil, dan approval di bagian bawah.
-  - Pantai 2x2: formulir BVB/11 (3 set) ditambah teams, results, approval, dan remarks.
-  - Data dari jadwal (kejuaraan, kota, tempat, tanggal, jam, pool, no. pertandingan, kode tim, pemain, kapten ©, libero, pelatih/ofisial, wasit & hakim garis) **terisi otomatis**. Bila pertandingan belum dicatat, hasilnya menjadi **blanko yang sudah terisi** untuk ditulis tangan. Bila sudah dicatat di aplikasi, poin, *service rounds*, time-out, pergantian, sanksi, dan hasil ikut terisi.
-  - Tersedia juga pilihan cetak **Rincian lengkap** (2 halaman, huruf lebih besar).
-- **Tim & pemain**: daftar pemain bisa langsung **ditempel dari Excel** (kolom No. dan Nama).
-- **Wasit**: data wasit, penugasan per pertandingan (wasit 1, wasit 2, cadangan, pencatat, asisten pencatat, hakim garis 1–4), dan rekap jumlah tugas.
-- **Jadwal & hasil**: tabel jadwal per hari dengan hasil per set dan total, yang bisa dicetak seperti dokumen jadwal Porprov.
-- **Klasemen** otomatis per format, kategori (Putra/Putri), dan pool.
-- **Offline**: setelah dibuka sekali lewat internet, aplikasi tetap bisa dipakai tanpa sinyal dan bisa dipasang di layar utama HP.
-- **Backup & gabung data**: unduh/impor file `.json`. Setiap lapangan bisa mengirim file pertandingannya, lalu panitia menggabungkannya di satu laptop.
-
-## Logo
-
-- Logo PBVSI (`img/pbvsi.png`) tampil di kepala aplikasi dan di semua cetakan.
-- Logo dan maskot PORPROV SULSEL XVIII/2026 (`img/porprov-2026.jpg`, `img/maskot-porprov-2026.jpg`) tampil di beranda dan cetakan bila kejuaraan memakai logo tersebut (menu **Kejuaraan → Ubah → Logo kejuaraan**). Logo kejuaraan lain bisa diunggah sendiri dari menu yang sama.
-- Pastikan penggunaan logo resmi sudah seizin panitia/PBVSI bila aplikasi dibuka untuk umum.
+Poin, line-up, rotasi/service rounds, time-out, pergantian, sanksi dan hasil **diisi tangan** di lapangan.
 
 ## Cara memakai
 
-1. **Beranda → Coba dengan data uji coba** (atau **Data → Muat data uji coba**) untuk mencoba-coba, atau langsung **Kejuaraan → + Kejuaraan**.
-2. **Tim → + Tim**: isi nama, kode (mis. MRS), pool, format, kategori, daftar pemain (centang kapten/libero), dan ofisial.
-3. **Wasit → + Wasit**: isi nama, lisensi, asal, dan kode asal.
-4. **Jadwal & Hasil → + Pertandingan**: pilih tim A/B, lalu tugaskan wasit.
-5. Klik **Scoresheet**, isi line-up sesuai lembar R-5 dan hasil undian, lalu **Mulai Set**.
-   - Tekan **+1 POIN** pada tim yang memenangkan reli. Di laptop bisa juga pakai tombol panah ← / →.
-   - Salah tekan? Pakai **↶ Undo** (Ctrl+Z).
-6. Setelah selesai (atau sebelum bertanding untuk mencetak blanko), klik **Cetak** (ikon 🖨️ di jadwal). Di jendela cetak pilih **A4 – Landscape**, skala **100%**, lalu printer atau **Save as PDF**.
+1. **Kejuaraan → + Kejuaraan**: nama, penyelenggara, kota, tempat, kode wilayah, logo.
+2. **Tim → + Tim**: nama & kode tim (mis. MRS), format, kategori, pool, daftar pemain (bisa **tempel dari Excel**), ofisial.
+3. **Wasit → + Wasit**: nama, lisensi, asal, kode asal.
+4. **Pertandingan & Cetak → + Pertandingan**: tanggal, jam, lapangan, tim A vs tim B, kostum, penugasan wasit.
+5. Klik **🖨️ Cetak** pada satu pertandingan, atau centang beberapa lalu **Cetak scoresheet terpilih** (bisa juga semua pertandingan hari ini dari Beranda).
+6. Di jendela cetak pilih **A4 – Landscape**, margin **None/Tidak ada**, skala **100%**.
 
-> **Penting:** data tersimpan di browser perangkat masing-masing (localStorage), *tidak* di GitHub. Rutin **unduh backup** di menu **Data**. Jangan membersihkan data browser sebelum backup.
+Tersedia juga **Blanko kosong** (formulir asli tanpa data) dan **Cetak daftar jadwal** (berisi daftar anggota pool & kolom kostum).
+Mau mencoba dulu? **Beranda → Coba dengan data uji coba**.
 
-## Menjalankan di komputer sendiri
+> Data tersimpan di browser perangkat masing-masing (tidak di GitHub). Unduh backup secara rutin di menu **Data**.
 
-Tidak perlu instalasi apa pun. Cukup buka `index.html` dengan Chrome/Edge. (Mode offline/PWA hanya aktif bila dibuka lewat `https://`, misalnya GitHub Pages.)
+## Logo
 
-## Struktur folder
+Logo PBVSI tampil di aplikasi dan di cetakan jadwal. Logo & maskot PORPROV SULSEL XVIII/2026 dipakai bila kejuaraan memilih logo tersebut (menu Kejuaraan). Pastikan penggunaan logo resmi sudah seizin panitia/PBVSI.
 
-```
-index.html              halaman utama
-css/style.css           tampilan aplikasi
-css/print.css           tampilan lembar cetak
-js/engine.js            mesin aturan & perhitungan scoresheet
-js/store.js             penyimpanan data di perangkat
-js/ui.js                fungsi bantu tampilan
-js/views/*.js           halaman-halaman (beranda, tim, wasit, jadwal, klasemen, scoresheet, cetak, data)
-sw.js                   service worker (mode offline)
-tests/engine.test.js    tes otomatis mesin scoresheet (jalankan: node tests/engine.test.js)
-```
+## Teknis
 
-Setiap kali mengubah file, naikkan `VERSION` di `sw.js` (mis. `v1.0.1`) agar HP yang sudah memasang aplikasi ikut mengambil versi baru.
+- Tanpa instalasi: cukup buka `index.html`, atau online lewat GitHub Pages (bisa dipasang di HP & dipakai offline).
+- Gambar formulir: `img/tpl/`; koordinat kotak formulir: `js/views/form-layouts.js`; penulis data di formulir: `js/views/forms.js` & `js/views/forms-beach.js`.
+- Setiap mengubah file, naikkan `VERSION` di `sw.js` agar HP yang sudah memasang aplikasi ikut memperbarui.
 
-## Batasan versi ini
-
-- Pergantian **libero** tidak dilacak per reli. Libero dicatat di daftar pemain dan ikut tercetak di lembar scoresheet.
-- Data tidak tersinkron otomatis antarperangkat. Gunakan ekspor/impor `.json`.
-- Kolom ketiga (setelah *court switch*) di formulir Pantai 4x4 baru diisi nama tim dan skor saat pindah lapangan pertama. Daftar seluruh skor pindah lapangan dan TTO dicatat di Remarks.
-
-Panduan unggah ke GitHub dan cara membuat link aplikasi online ada di **[PANDUAN-GITHUB.md](PANDUAN-GITHUB.md)**.
+Panduan unggah ke GitHub ada di **[PANDUAN-GITHUB.md](PANDUAN-GITHUB.md)**.

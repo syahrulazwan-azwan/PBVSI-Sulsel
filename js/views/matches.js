@@ -3,6 +3,7 @@
   'use strict';
   var S = window.VBStore, U = window.VBUI, E = window.VBEngine, esc = U.esc;
   var filt = { format: '', category: '', pool: '', q: '' };
+  var selected = {};
 
   var cache = {};
   /** Keadaan pertandingan (dengan cache berdasarkan updatedAt) */
@@ -95,9 +96,7 @@
       '<label>Label tim B bila belum ditentukan<input name="labelB" value="' + esc(m.labelB) + '" placeholder="RUNNER UP B"></label>' +
       '</div><h4 class="mt">Penugasan wasit</h4><div class="grid-form">' +
       ROLES.map(function (r) { return '<label>' + r[1] + '<select name="off_' + r[0] + '">' + refOptions(o[r[0]]) + '</select></label>'; }).join('') +
-      '</div><details class="mt"><summary>Aturan pertandingan (otomatis sesuai format, ubah bila perlu)</summary><div class="grid-form mt-s" id="rules">' +
-      RULE_FIELDS.map(function (f) { return '<label>' + f[1] + '<input type="number" min="0" name="rule_' + f[0] + '" value="' + esc(R[f[0]]) + '"' + (locked ? ' disabled' : '') + '></label>'; }).join('') +
-      '</div></details></form>';
+      '</div></form>';
   }
 
   function edit(m) {
@@ -105,7 +104,7 @@
     if (!comp) { U.toast('Buat kejuaraan terlebih dahulu', 'error'); location.hash = '#/kejuaraan'; return Promise.resolve(); }
     var isNew = !m;
     m = m || { competitionId: comp.id, no: nextNo(comp.id), date: U.today(), format: filt.format || 'indoor6', category: filt.category || 'PA', pool: filt.pool || '', age: 'Senior', events: [], officials: {} };
-    var locked = (m.events || []).length > 0;
+    var locked = false;
     return U.modal({
       title: isNew ? 'Pertandingan Baru' : 'Ubah Pertandingan #' + m.no, body: form(m, locked), wide: true,
       onOpen: function (root) {
@@ -115,11 +114,7 @@
           U.qs('[name=teamA]', root).innerHTML = teamOptions(m.competitionId, fsel.value, csel.value, U.qs('[name=teamA]', root).value);
           U.qs('[name=teamB]', root).innerHTML = teamOptions(m.competitionId, fsel.value, csel.value, U.qs('[name=teamB]', root).value);
         }
-        fsel.onchange = function () {
-          var R = E.defaultRules(fsel.value);
-          RULE_FIELDS.forEach(function (f) { U.qs('[name=rule_' + f[0] + ']', root).value = R[f[0]]; });
-          refresh();
-        };
+        fsel.onchange = refresh;
         csel.onchange = refresh;
       },
       actions: [{ label: 'Batal', value: null }, {
@@ -133,10 +128,7 @@
           if (!locked) {
             rec.format = d.format; rec.category = d.category; rec.teamA = d.teamA; rec.teamB = d.teamB;
             if (rec.teamA && rec.teamA === rec.teamB) { U.toast('Tim A dan Tim B tidak boleh sama', 'error'); return false; }
-            var R = E.defaultRules(rec.format);
-            RULE_FIELDS.forEach(function (f) { var v = parseInt(d['rule_' + f[0]], 10); if (!isNaN(v)) R[f[0]] = v; });
-            if (R.setsToWin < 1 || R.setPoints < 1 || R.decidingSetPoints < 1) { U.toast('Aturan tidak valid', 'error'); return false; }
-            rec.rules = R;
+            rec.rules = E.defaultRules(rec.format);
           }
           rec.events = rec.events || [];
           S.upsert('matches', rec);
@@ -187,9 +179,18 @@
     return h + '</div>';
   }
 
+  function blankMenu() {
+    U.modal({
+      title: 'Cetak blanko kosong',
+      body: '<p class="muted">Formulir asli tanpa data apa pun, untuk diisi tangan seluruhnya.</p><div class="menu-list">' +
+        Object.keys(E.FORMATS).map(function (k) { return '<a class="btn block" href="#/cetak/blanko:' + k + '" data-close-modal>🖨️ ' + esc(E.FORMATS[k].label) + '</a>'; }).join('') + '</div>',
+      onOpen: function (root) { U.qsa('[data-close-modal]', root).forEach(function (a) { a.addEventListener('click', function () { U.qs('[data-close]', root).click(); }); }); }
+    });
+  }
+
   function render(el) {
     var comp = S.activeCompetition();
-    var html = '<div class="page-head no-print"><h1>Jadwal &amp; Hasil</h1><div class="row gap"><button class="btn" id="print">Cetak jadwal</button><button class="btn primary" id="add">+ Pertandingan</button></div></div>';
+    var html = '<div class="page-head no-print"><h1>Pertandingan &amp; Cetak Scoresheet</h1><div class="row gap"><button class="btn" id="blank">Blanko kosong</button><button class="btn" id="print">Cetak daftar jadwal</button><button class="btn primary" id="add">+ Pertandingan</button></div></div>';
     if (!comp) {
       el.innerHTML = html + U.emptyState('Belum ada kejuaraan', 'Buat kejuaraan terlebih dahulu.', '<a class="btn primary" href="#/kejuaraan">Buat kejuaraan</a>');
       U.qs('#add', el).onclick = function () { edit(null); };
@@ -203,35 +204,26 @@
       '<input id="fq" type="search" placeholder="Cari tim / no." value="' + esc(filt.q) + '"></div>';
 
     var list = filtered(comp);
-    var maxSets = 0;
-    list.forEach(function (m) { maxSets = Math.max(maxSets, (m.rules ? m.rules.setsToWin * 2 - 1 : 3)); });
-    maxSets = maxSets || 3;
 
-    html += U.printTitle(comp, 'JADWAL &amp; HASIL PERTANDINGAN ' + esc((filt.format ? U.formatLabel(filt.format) + ' ' : '') + (filt.category ? U.catLabel(filt.category) : '')).toUpperCase(),
+    html += U.printTitle(comp, 'JADWAL PERTANDINGAN ' + esc((filt.format ? U.formatLabel(filt.format) + ' ' : '') + (filt.category ? U.catLabel(filt.category) : '')).toUpperCase(),
       '<div>' + esc(comp.name) + '</div><div>' + esc([comp.organizer, comp.city, [U.fmtDate(comp.startDate), U.fmtDate(comp.endDate)].filter(Boolean).join(' – ')].filter(Boolean).join(' • ')) + '</div>');
     html += poolList(comp);
 
-    if (!list.length) html += U.emptyState('Belum ada pertandingan', 'Tambahkan jadwal pertandingan, lalu buka scoresheet saat pertandingan dimulai.');
+    if (!list.length) html += U.emptyState('Belum ada pertandingan', 'Tambahkan pertandingan (tim A vs tim B dan wasitnya), lalu cetak scoresheet-nya untuk diisi manual.');
     else {
-      html += '<div class="table-wrap"><table class="tbl schedule"><thead><tr><th>Hari/Tgl</th><th>No.</th><th>Jam</th><th>Lap</th><th>PA/PI</th><th>Tim</th><th class="c"><span class="print-inline">Kostum</span></th><th>Tim</th><th class="c">Hasil</th>';
-      for (var i = 1; i <= maxSets; i++) html += '<th class="c print-only-cell">Set ' + i + '</th>';
-      html += '<th class="screen-only-cell">Skor per set</th><th class="c">Total</th><th class="no-print">Status</th><th class="no-print"></th></tr></thead><tbody>';
+      html += '<div class="selbar no-print"><span id="selinfo" class="muted">Centang pertandingan untuk dicetak sekaligus.</span>' +
+        '<button class="btn primary" id="printSel" disabled>🖨️ Cetak scoresheet terpilih</button>' +
+        '<button class="btn" id="printAll">🖨️ Cetak semua yang tampil (' + list.length + ')</button></div>';
+      html += '<div class="table-wrap"><table class="tbl schedule"><thead><tr><th class="no-print c"><input type="checkbox" id="selall" title="Pilih semua"></th><th>Hari/Tgl</th><th>No.</th><th>Jam</th><th>Lap</th><th>PA/PI</th><th>Tim</th><th class="c"><span class="print-inline">Kostum</span></th><th>Tim</th><th>Wasit 1 / Wasit 2</th><th class="no-print"></th></tr></thead><tbody>';
       var lastDate = null;
       list.forEach(function (m) {
-        var st = status(m), cells = resultCells(m, maxSets), s = state(m);
-        var winA = s && s.finished && s.winner === 'A', winB = s && s.finished && s.winner === 'B';
         var newDay = m.date !== lastDate; lastDate = m.date;
-        var setCells = cells.slice(1, cells.length - 1);
-        var played = setCells.filter(function (c) { return c !== '-'; });
-        html += '<tr class="' + (newDay ? 'day-start' : '') + '"><td class="nowrap">' + (newDay ? esc(U.fmtDate(m.date, true)) : '') + '</td><td>' + esc(m.no) + '</td><td class="nowrap">' + esc(m.time) + '</td><td>' + esc(m.court) + '</td><td class="nowrap">' + esc(m.category) + '<div class="muted small no-print">' + esc(U.formatLabel(m.format)) + (m.pool ? ' • ' + esc(m.pool) : '') + '</div></td>' +
-          '<td class="' + (winA ? 'win' : '') + '">' + esc(teamLabel(m, 'A')) + '</td><td class="muted c"><span class="screen-inline">vs</span><span class="print-inline">' + esc(m.note || '') + '</span></td><td class="' + (winB ? 'win' : '') + '">' + esc(teamLabel(m, 'B')) + '</td>' +
-          '<td class="c nowrap b">' + cells[0] + '</td>' +
-          setCells.map(function (c) { return '<td class="c nowrap print-only-cell">' + c + '</td>'; }).join('') +
-          '<td class="screen-only-cell small">' + (played.length ? played.join(', ') : '-') + '</td>' +
-          '<td class="c nowrap">' + cells[cells.length - 1] + '</td>' +
-          '<td class="no-print"><span class="badge ' + st + '">' + STATUS_LABEL[st] + '</span></td>' +
-          '<td class="no-print nowrap"><a class="btn small primary" href="#/scoresheet/' + m.id + '" title="Buka scoresheet">Scoresheet</a>' +
-          '<a class="btn small" href="#/cetak/' + m.id + '" title="Cetak scoresheet">🖨️</a>' +
+        var o = m.officials || {};
+        html += '<tr class="' + (newDay ? 'day-start' : '') + '"><td class="no-print c"><input type="checkbox" class="selm" value="' + m.id + '"' + (selected[m.id] ? ' checked' : '') + '></td>' +
+          '<td class="nowrap">' + (newDay ? esc(U.fmtDate(m.date, true)) : '') + '</td><td>' + esc(m.no) + '</td><td class="nowrap">' + esc(m.time) + '</td><td>' + esc(m.court) + '</td><td class="nowrap">' + esc(m.category) + '<div class="muted small no-print">' + esc(U.formatLabel(m.format)) + (m.pool ? ' • ' + esc(m.pool) : '') + '</div></td>' +
+          '<td><b>' + esc(teamLabel(m, 'A')) + '</b></td><td class="muted c"><span class="screen-inline">vs</span><span class="print-inline">' + esc(m.note || '') + '</span></td><td><b>' + esc(teamLabel(m, 'B')) + '</b></td>' +
+          '<td class="small">' + esc(U.refName(o.r1) || '—') + '<br>' + esc(U.refName(o.r2) || '—') + '</td>' +
+          '<td class="no-print nowrap"><a class="btn small primary" href="#/cetak/' + m.id + '" title="Cetak scoresheet">🖨️ Cetak</a>' +
           '<button class="btn small ghost" data-act="edit" data-id="' + m.id + '" title="Ubah">✏️</button>' +
           '<button class="btn small danger ghost" data-act="del" data-id="' + m.id + '" title="Hapus">✕</button></td></tr>';
       });
@@ -241,16 +233,30 @@
     el.innerHTML = html;
     U.qs('#add', el).onclick = function () { edit(null).then(function () { render(el); }); };
     U.qs('#print', el).onclick = function () { window.print(); };
+    U.qs('#blank', el).onclick = blankMenu;
     U.qs('#ff', el).onchange = function () { filt.format = this.value; render(el); };
     U.qs('#fc', el).onchange = function () { filt.category = this.value; render(el); };
     U.qs('#fp', el).onchange = function () { filt.pool = this.value; render(el); };
     var fq = U.qs('#fq', el);
     fq.oninput = function () { filt.q = this.value; clearTimeout(fq._t); fq._t = setTimeout(function () { render(el); var f = U.qs('#fq', el); f.focus(); f.setSelectionRange(f.value.length, f.value.length); }, 250); };
+    function selIds() { return list.filter(function (m) { return selected[m.id]; }).map(function (m) { return m.id; }); }
+    function updSel() {
+      var n = selIds().length, b = U.qs('#printSel', el), info = U.qs('#selinfo', el);
+      if (!b) return;
+      b.disabled = !n; b.textContent = '🖨️ Cetak scoresheet terpilih' + (n ? ' (' + n + ')' : '');
+      info.textContent = n ? n + ' pertandingan dipilih' : 'Centang pertandingan untuk dicetak sekaligus.';
+    }
+    U.qsa('.selm', el).forEach(function (c) { c.onchange = function () { if (c.checked) selected[c.value] = 1; else delete selected[c.value]; updSel(); }; });
+    var sa = U.qs('#selall', el);
+    if (sa) sa.onchange = function () { list.forEach(function (m) { if (sa.checked) selected[m.id] = 1; else delete selected[m.id]; }); U.qsa('.selm', el).forEach(function (c) { c.checked = sa.checked; }); updSel(); };
+    var ps = U.qs('#printSel', el); if (ps) ps.onclick = function () { location.hash = '#/cetak/multi:' + selIds().join(','); };
+    var pa = U.qs('#printAll', el); if (pa) pa.onclick = function () { location.hash = '#/cetak/multi:' + list.map(function (m) { return m.id; }).join(','); };
+    updSel();
     U.qsa('[data-act]', el).forEach(function (b) {
       b.onclick = function () {
         var m = S.get('matches', b.dataset.id);
         if (b.dataset.act === 'edit') edit(m).then(function () { render(el); });
-        if (b.dataset.act === 'del') U.confirm('Hapus pertandingan #' + m.no + ' (' + teamLabel(m, 'A') + ' vs ' + teamLabel(m, 'B') + ')? Seluruh catatan scoresheet ikut terhapus.', 'Hapus', true)
+        if (b.dataset.act === 'del') U.confirm('Hapus pertandingan #' + m.no + ' (' + teamLabel(m, 'A') + ' vs ' + teamLabel(m, 'B') + ')? ', 'Hapus', true)
           .then(function (ok) { if (ok) { S.remove('matches', m.id); render(el); } });
       };
     });

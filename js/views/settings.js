@@ -27,32 +27,7 @@
     });
   }
 
-  // ---------- Data contoh ----------
-  function rng(seed) { return function () { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }; }
-
-  function simulate(match, seed) {
-    var rand = rng(seed), t = new Date(); t.setHours(8, 0, 0, 0);
-    function tick(sec) { t = new Date(t.getTime() + sec * 1000); return t.toISOString(); }
-    var names = { A: 'A', B: 'B' };
-    var tA = S.get('teams', match.teamA), tB = S.get('teams', match.teamB);
-    var n = match.rules.players;
-    function lineup(team) { return team.players.filter(function (p) { return !p.libero; }).slice(0, n).map(function (p) { return p.no; }); }
-    var st = E.compute(match, names), guard = 0;
-    while (!st.finished && guard++ < 1000) {
-      var ev;
-      if (st.needsSetup) {
-        var no = st.nextSetNo;
-        ev = { t: 'setStart', lineup: { A: lineup(tA), B: lineup(tB) }, firstServe: no % 2 ? 'A' : 'B', left: no % 2 ? 'A' : 'B', time: tick(180) };
-      } else {
-        var r = rand();
-        if (r < 0.02 && st.current.timeouts.B.length < match.rules.timeoutsPerSet) ev = { t: 'timeout', team: 'B', time: tick(30) };
-        else ev = { t: 'point', team: rand() < 0.56 ? 'A' : 'B', time: tick(25 + Math.round(rand() * 20)) };
-      }
-      var res = E.tryEvent(match, ev, names);
-      if (res.ok) { match.events.push(ev); st = res.state; }
-    }
-  }
-
+  // ---------- Data uji coba ----------
   function loadSample() {
     var comp = S.upsert('competitions', {
       name: 'PORPROV SULSEL XVIII/2026 – BOLA VOLI (UJI COBA)', organizer: 'Pengprov PBVSI Sulawesi Selatan', city: 'Wajo – Bone', venue: 'GOR / Pantai (uji coba)',
@@ -74,7 +49,6 @@
     var no = 1;
     function match(format, cat, pool, a, bb, time, court, play, seed) {
       var m = { competitionId: comp.id, no: String(no++), date: U.today(), time: time, court: court, format: format, category: cat, pool: pool, age: 'Senior', stage: 'Pool Play', teamA: a.id, teamB: bb.id, officials: off, rules: E.defaultRules(format), events: [], note: ['Merah – Putih', 'Biru – Kuning', 'Hijau – Hitam'][no % 3] };
-      if (play) simulate(m, seed);
       return S.upsert('matches', m);
     }
     match('indoor6', 'PA', 'A', i1, i2, '08.00-10.00', 'I', true, 7);
@@ -94,7 +68,7 @@
       '<div class="cards">' +
       '<div class="card"><div class="card-title">Simpan cadangan (backup)</div><p class="muted">Semua data tersimpan di perangkat/browser ini saja. Unduh backup secara rutin, terutama setelah pertandingan selesai.</p><div class="card-actions"><button class="btn primary" id="exp">Unduh backup (.json)</button></div></div>' +
       '<div class="card"><div class="card-title">Impor / gabungkan data</div><p class="muted">Pakai untuk memindahkan data ke perangkat lain, atau mengumpulkan hasil scoresheet dari tiap lapangan ke laptop panitia.</p><div class="card-actions"><button class="btn" id="imp">Pilih file .json</button></div></div>' +
-      '<div class="card"><div class="card-title">Data uji coba</div><p class="muted">Menambahkan kejuaraan uji coba PORPROV SULSEL XVIII/2026 berisi tim, wasit, dan beberapa pertandingan (sebagian sudah selesai) untuk latihan. Bisa dihapus kapan saja di menu Kejuaraan.</p><div class="card-actions"><button class="btn" id="sample">Muat data uji coba</button></div></div>' +
+      '<div class="card"><div class="card-title">Data uji coba</div><p class="muted">Menambahkan kejuaraan uji coba PORPROV SULSEL XVIII/2026 berisi tim, pemain, wasit, dan beberapa pertandingan untuk mencoba mencetak scoresheet. Bisa dihapus kapan saja di menu Kejuaraan.</p><div class="card-actions"><button class="btn" id="sample">Muat data uji coba</button></div></div>' +
       '<div class="card"><div class="card-title">Hapus semua data</div><p class="muted">Menghapus seluruh data di perangkat ini. Unduh backup dulu!</p><div class="card-actions"><button class="btn danger" id="reset">Hapus semua</button></div></div>' +
       '</div><p class="muted small mt">Isi data: ' + raw.competitions.length + ' kejuaraan, ' + raw.teams.length + ' tim, ' + raw.referees.length + ' wasit, ' + raw.matches.length + ' pertandingan (' + (size / 1024).toFixed(1) + ' KB).</p>';
     U.qs('#exp', el).onclick = function () { U.download('backup-scoresheet-' + stamp() + '.json', S.exportAll()); };
