@@ -13,14 +13,33 @@
 
   // ---------------------------------------------------------- penggambar SVG
   function Pen() { this.out = []; }
+  /** ukuran huruf terbesar (<= size, >= 80%) yang membuat semua teks muat di lebar max */
+  function fitSize(list, size, max, bold) {
+    var best = size;
+    list.forEach(function (s) { var w = textWidth(String(s), size, bold); if (w > max - 1) best = Math.min(best, size * (max - 1) / w); });
+    return Math.max(size * 0.8, Math.floor(best * 10) / 10);
+  }
+  var _cv = null;
+  function textWidth(s, size, bold) {
+    try {
+      _cv = _cv || document.createElement('canvas').getContext('2d');
+      _cv.font = (bold ? '700 ' : '400 ') + '100px Arial, Helvetica, sans-serif';
+      return _cv.measureText(s).width * size / 100;
+    } catch (e) { return s.length * size * (bold ? 0.6 : 0.55); }
+  }
   Pen.prototype.t = function (x, y, str, o) {
     if (str === '' || str == null || !x) return;
     o = o || {};
     var size = o.size || 10, anchor = o.align === 'l' ? 'start' : o.align === 'r' ? 'end' : 'middle';
     var s = String(str), extra = '';
     if (o.max) {
-      var est = s.length * size * (o.bold ? 0.6 : 0.55);
-      if (est > o.max) extra = ' textLength="' + o.max + '" lengthAdjust="spacingAndGlyphs"';
+      // ukur lebar teks sesungguhnya; bila kepanjangan kecilkan huruf dulu (maks. 25%), baru dipadatkan
+      var w = textWidth(s, size, o.bold !== false), lim = o.max - 1;
+      if (w > lim) {
+        var ns = Math.max(size * 0.75, size * lim / w);
+        w = w * ns / size; size = Math.round(ns * 10) / 10;
+        if (w > lim) extra = ' textLength="' + lim + '" lengthAdjust="spacingAndGlyphs"';
+      }
     }
     this.out.push('<text x="' + x + '" y="' + y + '" font-size="' + size + '" text-anchor="' + anchor + '" dominant-baseline="central"' +
       (o.bold === false ? '' : ' font-weight="700"') + extra + '>' + xe(s) + '</text>');
@@ -99,7 +118,7 @@
     pen.t(h.city[0], h.city[1], c.city || '', { size: fs, align: 'l', max: h.cityMax });
     pen.t(h.ccode[0], h.ccode[1], c.countryCode || '', { size: fs });
     if (m.date) { var dp = m.date.split('-'); pen.t(h.dateText[0], h.dateText[1], dp[2] + '-' + dp[1] + '-' + dp[0].slice(2), { size: fs }); }
-    pen.t(h.timeText[0], h.timeText[1], m.time || '', { size: fs, max: 40 });
+    pen.t(h.timeText[0], h.timeText[1], m.time || '', { size: fs, max: 38 });
     pen.t(h.hall[0], h.hall[1], c.venue || '', { size: fs, align: 'l', max: h.hallMax });
     pen.t(h.pool[0], h.pool[1], m.pool || '', { size: fs, max: 56 });
     pen.t(h.matchNo[0], h.matchNo[1], m.no || '', { size: fs + 1 });
@@ -135,23 +154,31 @@
       pen.t(ro.codeL[0], ro.codeL[1], ctx.code(A), { size: rf + 2, max: 50 });
       pen.t(ro.codeR[0], ro.codeR[1], ctx.code(B), { size: rf + 2, max: 50 });
     }
+    // satu ukuran huruf seragam untuk semua nama (dan semua ofisial) agar rapi
+    var allP = [], allO = [];
+    [A, B].forEach(function (id) {
+      var t = ctx.team[id] || {};
+      (t.players || []).forEach(function (p) { allP.push(p.name + (p.captain ? ' ©' : '')); });
+      var o = t.officials || {}; ['C', 'AC1', 'AC2', 'T', 'M'].forEach(function (k) { if (o[k]) allO.push(o[k]); });
+    });
+    var rfN = fitSize(allP, rf, ro.nameMax, true), rfO = fitSize(allO, rf - 0.5, ro.offMax, false);
     [[A, ro.noL, ro.nameL, ro.offL, 'r'], [B, ro.noR, ro.nameR, ro.offR, 'l']].forEach(function (cfg) {
       var t = ctx.team[cfg[0]] || {}, ps = t.players || [];
       var reg = ps.filter(function (p) { return !p.libero; }), lib = ps.filter(function (p) { return p.libero; });
       reg.slice(0, ro.rows.length - 1).forEach(function (p, i) {
         var y = (ro.rows[i] + ro.rows[i + 1]) / 2;
         pen.t(cfg[1], y, p.no, { size: rf + 0.5 });
-        pen.t(cfg[2], y, p.name + (p.captain ? ' ©' : ''), { size: rf, align: 'l', max: ro.nameMax });
+        pen.t(cfg[2], y, p.name + (p.captain ? ' ©' : ''), { size: rfN, align: 'l', max: ro.nameMax });
       });
       lib.slice(0, ro.lib.length - 1).forEach(function (p, i) {
         var y = (ro.lib[i] + ro.lib[i + 1]) / 2;
         pen.t(cfg[1], y, p.no, { size: rf + 0.5 });
-        pen.t(cfg[2], y, p.name + (p.captain ? ' ©' : ''), { size: rf, align: 'l', max: ro.nameMax });
+        pen.t(cfg[2], y, p.name + (p.captain ? ' ©' : ''), { size: rfN, align: 'l', max: ro.nameMax });
       });
       var off = t.officials || {};
       ['C', 'AC1', 'AC2', 'T', 'M'].forEach(function (k, i) {
         var y = (ro.off[i] + ro.off[i + 1]) / 2;
-        pen.t(cfg[3], y, off[k] || '', { size: rf - 0.5, align: cfg[4], bold: false, max: ro.offMax });
+        pen.t(cfg[3], y, off[k] || '', { size: rfO, align: cfg[4], bold: false, max: ro.offMax });
       });
     });
     return page(L, pen, 'a4');

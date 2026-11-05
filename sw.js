@@ -1,6 +1,6 @@
 /* Service worker: membuat aplikasi tetap bisa dibuka tanpa internet.
  * Naikkan nomor VERSION setiap kali ada perubahan file agar perangkat mengambil versi baru. */
-var VERSION = 'v3.1.0';
+var VERSION = 'v3.2.0';
 var CACHE = 'scoresheet-' + VERSION;
 var FILES = [
   './', 'index.html', 'manifest.webmanifest',
