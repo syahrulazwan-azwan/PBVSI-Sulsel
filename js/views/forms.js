@@ -1,13 +1,13 @@
 /*
  * Cetak di atas FORMULIR ASLI.
  * Latar = gambar halaman formulir resmi (FIVB indoor 2013, BVB/11 2x2 2026, BVB 4x4),
- * data ditulis di atas kotak-kotaknya dengan "tinta biru" memakai SVG.
+ * data ditulis di atas kotak-kotaknya dengan tinta hitam memakai SVG.
  * Koordinat (satuan pt halaman formulir asli) ada di form-layouts.js.
  */
 (function () {
   'use strict';
   var S = window.VBStore, U = window.VBUI, E = window.VBEngine;
-  var INK = '#0b3a9e';
+  var INK = '#000';
 
   function xe(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
@@ -117,7 +117,6 @@
     var rm = L.rem, lines = plain(ctx);
     var ap = L.appr, keys = ap.keys || ['r1', 'r2', 'scorer', 'ascorer'];
     if (keys.indexOf('reserve') < 0) { var r0 = ref(ctx, 'reserve'); if (r0.name) lines.push('Wasit cadangan: ' + r0.name + (r0.code ? ' (' + r0.code + ')' : '')); }
-    if (m.note) lines.unshift('Kostum: ' + m.note);
     lines.slice(0, rm.rows.length + 1).forEach(function (ln, i) {
       if (i === 0) pen.t(rm.first[0], rm.first[1], ln, { size: rm.fs || 7, align: 'l', bold: false, max: rm.x1 - rm.first[0] });
       else pen.t(rm.x0, rm.rows[i - 1], ln, { size: rm.fs || 7, align: 'l', bold: false, max: rm.x1 - rm.x0 });

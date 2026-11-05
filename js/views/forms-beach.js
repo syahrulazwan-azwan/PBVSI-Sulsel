@@ -20,11 +20,9 @@
   }
   function remarkLines(ctx, extra) {
     var out = F().plain(ctx);
-    if (ctx.m.note) out.unshift('Kostum: ' + ctx.m.note);
     ctx.st.sanctions.filter(function (s) { return s.type === 'IR'; }).forEach(function (s) {
       out.push('Improper request ' + ctx.code(s.team) + ' (set ' + s.set + ', ' + sc(s.a, s.b) + ')');
     });
-    var r0 = F().ref(ctx, 'reserve'); if (r0.name) out.push('Wasit cadangan: ' + r0.name + (r0.code ? ' (' + r0.code + ')' : ''));
     return out.concat(extra || []);
   }
   function writeLines(pen, R, lines) {
