@@ -36,7 +36,7 @@
       // ukur lebar teks sesungguhnya; bila kepanjangan kecilkan huruf dulu (maks. 25%), baru dipadatkan
       var w = textWidth(s, size, o.bold !== false), lim = o.max - 1;
       if (w > lim) {
-        var ns = Math.max(size * 0.75, size * lim / w);
+        var ns = o.keepSize ? size : Math.max(size * 0.75, size * lim / w);
         w = w * ns / size; size = Math.round(ns * 10) / 10;
         if (w > lim) extra = ' textLength="' + lim + '" lengthAdjust="spacingAndGlyphs"';
       }
@@ -168,17 +168,17 @@
       reg.slice(0, ro.rows.length - 1).forEach(function (p, i) {
         var y = (ro.rows[i] + ro.rows[i + 1]) / 2;
         pen.t(cfg[1], y, p.no, { size: rf + 0.5 });
-        pen.t(cfg[2], y, p.name + (p.captain ? ' ©' : ''), { size: rfN, align: 'l', max: ro.nameMax });
+        pen.t(cfg[2], y, p.name + (p.captain ? ' ©' : ''), { size: rfN, align: 'l', max: ro.nameMax, keepSize: true });
       });
       lib.slice(0, ro.lib.length - 1).forEach(function (p, i) {
         var y = (ro.lib[i] + ro.lib[i + 1]) / 2;
         pen.t(cfg[1], y, p.no, { size: rf + 0.5 });
-        pen.t(cfg[2], y, p.name + (p.captain ? ' ©' : ''), { size: rfN, align: 'l', max: ro.nameMax });
+        pen.t(cfg[2], y, p.name + (p.captain ? ' ©' : ''), { size: rfN, align: 'l', max: ro.nameMax, keepSize: true });
       });
       var off = t.officials || {};
       ['C', 'AC1', 'AC2', 'T', 'M'].forEach(function (k, i) {
         var y = (ro.off[i] + ro.off[i + 1]) / 2;
-        pen.t(cfg[3], y, off[k] || '', { size: rfO, align: cfg[4], bold: false, max: ro.offMax });
+        pen.t(cfg[3], y, off[k] || '', { size: rfO, align: cfg[4], bold: false, max: ro.offMax, keepSize: true });
       });
     });
     return page(L, pen, 'a4');
