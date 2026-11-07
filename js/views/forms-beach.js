@@ -149,7 +149,7 @@
     }
     var ap = L.appr;
     ['r1', 'r2', 'scorer', 'ascorer'].forEach(function (k, i) {
-      var r = F().ref(ctx, k); p2.t(ap.nameX, ap.rows[i], r.name || '', { size: 9, align: 'l', max: 122 }); p2.t(ap.countryX, ap.rows[i], r.code || r.origin || '', { size: 8, max: 44 });
+      var r = F().ref(ctx, k); p2.t(ap.nameX, ap.rows[i], r.name || '', { size: 9, align: 'l', max: 122 }); p2.t(ap.countryX, ap.rows[i], r.code || '', { size: 8, max: 44 });
     });
     ['lj1', 'lj2', 'lj3', 'lj4'].forEach(function (k, i) { var r = F().ref(ctx, k), p = ap.lj[i]; p2.t(p[0], p[1], r.name || '', { size: 7.5, align: 'l', bold: false, max: 115 }); });
     writeLines(p2, L.rem, remarkLines(ctx));
@@ -269,7 +269,7 @@
     }
     var ap = L.appr;
     ['r1', 'r2', 'scorer', 'ascorer'].forEach(function (k, i) {
-      var r = F().ref(ctx, k); p2.t(ap.nameX, ap.rows[i], r.name || '', { size: 9.5, align: 'l', max: 190 }); p2.t(ap.countryX, ap.rows[i], r.code || r.origin || '', { size: 8.5, max: 42 });
+      var r = F().ref(ctx, k); p2.t(ap.nameX, ap.rows[i], r.name || '', { size: 9.5, align: 'l', max: 190 }); p2.t(ap.countryX, ap.rows[i], r.code || '', { size: 8.5, max: 42 });
     });
     ['lj1', 'lj2', 'lj3', 'lj4'].forEach(function (k, i) { var r = F().ref(ctx, k), p = ap.lj[i]; p2.t(p[0], p[1], r.name || '', { size: 7.5, align: 'l', bold: false, max: 85 }); });
     // remarks: semua skor pindah lapangan & TTO

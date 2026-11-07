@@ -302,3 +302,5 @@ details summary { cursor: pointer; }
   .filters .cat-tabs { width: 100%; }
   .filters .cat-tab { flex: 1; }
 }
+
+.tbl tr.grp td { background: #eef2ff; }

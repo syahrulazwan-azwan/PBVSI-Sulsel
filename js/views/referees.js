@@ -8,12 +8,18 @@
     ['scorer', 'Pencatat (Scorer)'], ['ascorer', 'Asisten pencatat'],
     ['lj1', 'Hakim garis 1'], ['lj2', 'Hakim garis 2'], ['lj3', 'Hakim garis 3'], ['lj4', 'Hakim garis 4']
   ];
-  var LICENSES = ['Daerah', 'Nasional C', 'Nasional B', 'Nasional A', 'Internasional', 'Kandidat'];
+  var LICENSES = ['Wasit Daerah', 'Wasit Nasional', 'Nasional C', 'Nasional B', 'Nasional A', 'Internasional', 'Kandidat'];
+  var TUGAS = ['Wasit', 'Hakim Garis', 'Pencatat', 'Lainnya'];
+  function tugasOf(r) { return TUGAS.indexOf(r.tugas) >= 0 ? r.tugas : 'Lainnya'; }
+  function sortRefs(a, b) {
+    return TUGAS.indexOf(tugasOf(a)) - TUGAS.indexOf(tugasOf(b)) || (a.seq || 999) - (b.seq || 999) || a.name.localeCompare(b.name);
+  }
 
   function form(r) {
     r = r || {};
     return '<form class="grid-form">' +
-      '<label class="span2">Nama lengkap<input name="name" required value="' + esc(r.name) + '"></label>' +
+      '<label class="span2">Nama lengkap &amp; gelar<input name="name" required value="' + esc(r.name) + '"></label>' +
+      '<label>Tugas<select name="tugas">' + TUGAS.map(function (t) { return '<option' + (tugasOf(r) === t ? ' selected' : '') + '>' + t + '</option>'; }).join('') + '</select></label>' +
       '<label>Lisensi / tingkat<input name="license" list="lic" value="' + esc(r.license) + '" placeholder="Nasional C"></label>' +
       '<datalist id="lic">' + LICENSES.map(function (l) { return '<option value="' + l + '">'; }).join('') + '</datalist>' +
       '<label>Asal (kab/kota)<input name="origin" value="' + esc(r.origin) + '" placeholder="Takalar"></label>' +
@@ -39,7 +45,7 @@
   /** Rekap penugasan wasit pada kejuaraan aktif */
   function duties(compId) {
     var res = {};
-    S.list('matches', function (m) { return !compId || m.competitionId === compId; }).forEach(function (m) {
+    S.list('matches').forEach(function (m) {
       var o = m.officials || {};
       ROLES.forEach(function (role) {
         var id = o[role[0]];
@@ -67,7 +73,7 @@
 
   function render(el) {
     var comp = S.activeCompetition();
-    var refs = S.list('referees').sort(function (a, b) { return a.name.localeCompare(b.name); });
+    var refs = S.list('referees').sort(sortRefs);
     var dut = duties(comp && comp.id);
     var html = '<div class="page-head"><h1>Wasit</h1><div class="row gap"><button class="btn" id="print">Cetak rekap</button><button class="btn primary" id="add">+ Wasit</button></div></div>' +
       '<p class="muted no-print">Isi daftar wasit, pencatat, dan hakim garis di sini. Penugasannya dipilih saat membuat scoresheet (boleh juga dikosongkan lalu ditulis tangan).</p>';
@@ -75,7 +81,9 @@
     else {
       html += U.printTitle(comp, 'REKAP PENUGASAN WASIT', '<div>' + esc(comp ? comp.name : '') + '</div>');
       html += '<div class="table-wrap"><table class="tbl"><thead><tr><th>No</th><th>Nama</th><th>Lisensi</th><th>Asal</th><th class="c">W1</th><th class="c">W2</th><th class="c">Pencatat</th><th class="c">Hakim garis</th><th class="c">Total</th><th class="no-print"></th></tr></thead><tbody>';
+      var lastT = null;
       refs.forEach(function (r, i) {
+        if (tugasOf(r) !== lastT) { lastT = tugasOf(r); html += '<tr class="grp"><td colspan="10"><b>' + esc(lastT) + '</b> <span class="muted small">(' + refs.filter(function (x) { return tugasOf(x) === lastT; }).length + ' orang)</span></td></tr>'; }
         var d = dut[r.id] || { total: 0, roles: {} };
         var rl = d.roles;
         var lj = (rl.lj1 || 0) + (rl.lj2 || 0) + (rl.lj3 || 0) + (rl.lj4 || 0);
@@ -98,5 +106,5 @@
     });
   }
 
-  VB.views.wasit = { render: render, ROLES: ROLES };
+  VB.views.wasit = { render: render, ROLES: ROLES, TUGAS: TUGAS, tugasOf: tugasOf, sortRefs: sortRefs };
 })();

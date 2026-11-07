@@ -48,11 +48,36 @@
     }).then(function (buf) { return JSON.parse(new TextDecoder().decode(buf)); });
   }
   function applyData(enc, d, pin) {
-    var st = window.VBStore.importData({ teams: d.teams || [], matches: d.matches || [], competitions: d.competitions || [] }, 'merge');
+    var st = window.VBStore.importData({ teams: d.teams || [], matches: d.matches || [], competitions: d.competitions || [], referees: d.referees || [] }, 'merge');
     if (d.event) window.VBStore.setSetting('eventData', d.event);
     window.VBStore.setSetting('dataPin', normPin(pin));
     window.VBStore.setSetting('seedLoaded', enc.seed);
+    st.cleaned = cleanTestData(d);
     return st;
+  }
+  /** Hapus data uji coba / contoh: tim di luar data resmi, pertandingannya, dan wasit uji/contoh.
+   *  Salinan yang dihapus disimpan di localStorage (vb-cadangan-data-uji) untuk berjaga-jaga. */
+  function cleanTestData(d) {
+    var S = window.VBStore, ok = {};
+    (d.teams || []).forEach(function (t) { ok[t.id] = 1; });
+    var gone = { teams: [], matches: [], referees: [] };
+    S.list('teams').forEach(function (t) { if (!ok[t.id]) gone.teams.push(t); });
+    var bad = {}; gone.teams.forEach(function (t) { bad[t.id] = 1; });
+    S.list('matches').forEach(function (m) {
+      if (bad[m.teamA] || bad[m.teamB] || /^uji-/.test(m.id) || (m.teamA && !S.get('teams', m.teamA)) || (m.teamB && !S.get('teams', m.teamB))) gone.matches.push(m);
+    });
+    var SAMPLE = ['ASISTEN PENCATAT', 'HAKIM GARIS SATU', 'HAKIM GARIS DUA'];   // wasit dari "data contoh" lama
+    S.list('referees').forEach(function (r) {
+      var n = String(r.name || '').trim().toUpperCase();
+      if (/\bUJI\b|\bCONTOH\b/.test(n) || SAMPLE.indexOf(n) >= 0) gone.referees.push(r);
+    });
+    var n = gone.teams.length + gone.matches.length + gone.referees.length;
+    if (!n) return 0;
+    try { localStorage.setItem('vb-cadangan-data-uji', JSON.stringify(gone)); } catch (e) { /* abaikan */ }
+    gone.matches.forEach(function (m) { S.remove('matches', m.id); });
+    gone.teams.forEach(function (t) { S.remove('teams', t.id); });
+    gone.referees.forEach(function (r) { S.remove('referees', r.id); });
+    return n;
   }
   function askPin(enc, msg) {
     var inp;
@@ -68,7 +93,7 @@
       var pin = inp.value;
       decrypt(enc, pin).then(function (d) {
         var st = applyData(enc, d, pin);
-        U.toast('Data dimuat: ' + (d.teams || []).length + ' tim, ' + (d.matches || []).length + ' pertandingan');
+        U.toast('Data dimuat: ' + (d.teams || []).length + ' tim, ' + (d.matches || []).length + ' pertandingan' + (st.cleaned ? ' (data uji coba dibersihkan)' : ''));
         route();
         return st;
       }).catch(function () { askPin(enc, 'PIN salah. Coba lagi.'); });
@@ -84,7 +109,7 @@
       if (set.dataPin && !force) {
         decrypt(enc, set.dataPin).then(function (d) {
           var st = applyData(enc, d, set.dataPin);
-          if (st.added || st.updated) { U.toast('Data PORPROV diperbarui'); route(); }
+          if (st.added || st.updated || st.cleaned) { U.toast('Data PORPROV diperbarui' + (st.cleaned ? ', data uji coba dibersihkan' : '')); route(); }
         }).catch(function () { askPin(enc, 'PIN data sudah diganti. Masukkan PIN yang baru.'); });
       } else askPin(enc);
     }).catch(function () { /* offline – pakai data yang sudah ada */ });

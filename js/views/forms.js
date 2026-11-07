@@ -144,7 +144,7 @@
     keys.forEach(function (k, i) {
       var r = ref(ctx, k);
       pen.t(ap.nameX, ap.rows[i], r.name || '', { size: ap.fs || 7, align: 'l', max: ap.nameMax || 200 });
-      pen.t(ap.countryX, ap.rows[i], r.code || r.origin || '', { size: (ap.fs || 7) - 0.5, max: 36 });
+      pen.t(ap.countryX, ap.rows[i], r.code || '', { size: (ap.fs || 7) - 0.5, max: 36 });
     });
     ['lj1', 'lj2', 'lj3', 'lj4'].forEach(function (k, i) { var r = ref(ctx, k), p = ap.lj[i]; pen.t(p[0], p[1], r.name || '', { size: (ap.fs || 7) - 0.5, align: p[2], bold: false, max: ap.ljMax || 180 }); });
 

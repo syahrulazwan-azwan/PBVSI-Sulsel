@@ -91,10 +91,17 @@
       .forEach(function (t) { o += '<option value="' + t.id + '"' + (t.id === sel ? ' selected' : '') + '>' + esc((t.pool ? '[' + t.pool + '] ' : '') + t.name + (t.code ? ' (' + t.code + ')' : '')) + '</option>'; });
     return o;
   }
-  function refOptions(sel) {
-    var o = '<option value="">—</option>';
-    S.list('referees').sort(function (a, b) { return a.name.localeCompare(b.name); }).forEach(function (r) {
-      o += '<option value="' + r.id + '"' + (r.id === sel ? ' selected' : '') + '>' + esc(r.name + (r.code ? ' (' + r.code + ')' : '')) + '</option>';
+  /** pilihan wasit dikelompokkan menurut tugas; kelompok yang sesuai peran tampil paling atas */
+  function refOptions(sel, role) {
+    var W = VB.views.wasit, pref = /^lj/.test(role || '') ? 'Hakim Garis' : /scorer/.test(role || '') ? 'Pencatat' : 'Wasit';
+    var order = [pref].concat(W.TUGAS.filter(function (t) { return t !== pref; }));
+    var o = '<option value="">—</option>', refs = S.list('referees').sort(W.sortRefs);
+    order.forEach(function (t) {
+      var g = refs.filter(function (r) { return W.tugasOf(r) === t; });
+      if (!g.length) return;
+      o += '<optgroup label="' + esc(t) + '">' + g.map(function (r) {
+        return '<option value="' + r.id + '"' + (r.id === sel ? ' selected' : '') + '>' + esc(r.name) + '</option>';
+      }).join('') + '</optgroup>';
     });
     return o;
   }
@@ -132,7 +139,7 @@
       '<label>Tim B<select name="teamB">' + teamOptions(m.format, m.category, m.teamB, phLabel(m, 'B')) + '</select></label>' +
       '</div><p class="muted small" id="teamhint"></p>' +
       '<h4 class="mt">Wasit &amp; petugas <small class="muted">(boleh dikosongkan, ditulis tangan)</small></h4><div class="grid-form">' +
-      ROLES.map(function (r) { return '<label>' + r[1] + '<select name="off_' + r[0] + '">' + refOptions(o[r[0]]) + '</select></label>'; }).join('') +
+      ROLES.map(function (r) { return '<label>' + r[1] + '<select name="off_' + r[0] + '">' + refOptions(o[r[0]], r[0]) + '</select></label>'; }).join('') +
       '</div>' +
       '<details class="mt"><summary class="muted">Lainnya (khusus pertandingan ini: nama kompetisi, kota, hall, format, kostum)</summary><div class="grid-form mt-s">' +
       '<label class="span2">Nama kompetisi<input name="compName" value="' + esc(m.compName) + '"></label>' +
