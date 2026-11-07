@@ -6,11 +6,20 @@
   var selected = {};
 
   function names(m) { return { A: teamLabel(m, 'A'), B: teamLabel(m, 'B') }; }
-  function teamLabel(m, side) {
+  /** id tim; untuk partai Babak II (slot mis. "A1" = juara pool A) diambil dari hasil di menu Bagan */
+  function teamId(m, side) {
     var id = side === 'A' ? m.teamA : m.teamB;
+    if (id) return id;
+    var slot = side === 'A' ? m.slotA : m.slotB, x = slot && /^([A-Z]+)([12])$/.exec(slot);
+    if (!x) return '';
+    var h = (S.settings().baganHasil || {})[m.category] || {};
+    return (h[x[1]] || {})[x[2]] || '';
+  }
+  function teamLabel(m, side) {
+    var id = teamId(m, side);
     var t = id && S.get('teams', id);
     if (t) return t.name;
-    return (side === 'A' ? m.labelA : m.labelB) || ('Tim ' + side);
+    return (side === 'A' ? (m.labelA || m.slotA) : (m.labelB || m.slotB)) || ('Tim ' + side);
   }
   function state(m) { try { return E.compute({ rules: m.rules || E.defaultRules(m.format), events: [] }, names(m)); } catch (e) { return null; } }
 
@@ -73,8 +82,8 @@
     return String(max + 1);
   }
 
-  function teamOptions(format, cat, sel) {
-    var o = '<option value="">— pilih tim —</option>';
+  function teamOptions(format, cat, sel, ph) {
+    var o = '<option value="">' + esc(ph || '— pilih tim —') + '</option>';
     S.list('teams', function (t) { return t.format === format && t.category === cat; })
       .sort(VB.views.tim.sortTeams)
       .forEach(function (t) { o += '<option value="' + t.id + '"' + (t.id === sel ? ' selected' : '') + '>' + esc((t.pool ? '[' + t.pool + '] ' : '') + t.name + (t.code ? ' (' + t.code + ')' : '')) + '</option>'; });
@@ -91,6 +100,13 @@
     if (m[k] != null) return m[k];
     var c = S.get('competitions', m.competitionId) || {};
     return { compName: c.name, city: c.city, hall: c.venue, ccode: c.countryCode }[k] || '';
+  }
+
+  function phLabel(m, side) {
+    var sl = side === 'A' ? m.slotA : m.slotB, lb = side === 'A' ? m.labelA : m.labelB;
+    if (sl) return '— ' + sl + ' (otomatis dari menu Bagan) —';
+    if (lb) return '— ' + lb + ' (pilih bila sudah diketahui) —';
+    return '';
   }
 
   function form(m) {
@@ -110,8 +126,8 @@
       '</div><h4 class="mt">Tim</h4><div class="grid-form">' +
       '<label>Kategori<select name="category">' + U.catOptions(m.category) + '</select></label>' +
       '<label>Pool / Phase<input name="pool" value="' + esc(m.pool) + '" placeholder="otomatis dari tim"></label>' +
-      '<label>Tim A<select name="teamA">' + teamOptions(m.format, m.category, m.teamA) + '</select></label>' +
-      '<label>Tim B<select name="teamB">' + teamOptions(m.format, m.category, m.teamB) + '</select></label>' +
+      '<label>Tim A<select name="teamA">' + teamOptions(m.format, m.category, m.teamA, phLabel(m, 'A')) + '</select></label>' +
+      '<label>Tim B<select name="teamB">' + teamOptions(m.format, m.category, m.teamB, phLabel(m, 'B')) + '</select></label>' +
       '</div><p class="muted small" id="teamhint"></p>' +
       '<h4 class="mt">Wasit &amp; petugas <small class="muted">(boleh dikosongkan, ditulis tangan)</small></h4><div class="grid-form">' +
       ROLES.map(function (r) { return '<label>' + r[1] + '<select name="off_' + r[0] + '">' + refOptions(o[r[0]]) + '</select></label>'; }).join('') +
@@ -147,8 +163,8 @@
         var fsel = U.qs('[name=format]', root), csel = U.qs('[name=category]', root);
         function refresh() {
           var a = U.qs('[name=teamA]', root), b = U.qs('[name=teamB]', root);
-          a.innerHTML = teamOptions(fsel.value, csel.value, a.value);
-          b.innerHTML = teamOptions(fsel.value, csel.value, b.value);
+          a.innerHTML = teamOptions(fsel.value, csel.value, a.value, phLabel(m, 'A'));
+          b.innerHTML = teamOptions(fsel.value, csel.value, b.value, phLabel(m, 'B'));
           var n = a.options.length - 1;
           U.qs('#teamhint', root).innerHTML = n ? '' : 'Belum ada tim ' + esc(U.formatLabel(fsel.value)) + ' ' + esc(U.catLabel(csel.value)) + '. Tambahkan dulu di menu <a href="#/tim">Tim</a>.';
         }
@@ -296,5 +312,5 @@
     });
   }
 
-  VB.views.jadwal = { render: render, edit: edit, state: state, names: names, teamLabel: teamLabel, eventData: eventData, editEvent: editEvent };
+  VB.views.jadwal = { render: render, edit: edit, state: state, names: names, teamLabel: teamLabel, teamId: teamId, eventData: eventData, editEvent: editEvent };
 })();

@@ -57,7 +57,7 @@
     var rows = (d && d.matches || []).sort(function (a, b) { return ((a.m.date || '') + (a.m.time || '')).localeCompare((b.m.date || '') + (b.m.time || '')); })
       .map(function (x) {
         var role = ROLES.filter(function (k) { return k[0] === x.role; })[0];
-        return '<tr><td>' + esc(U.fmtDate(x.m.date)) + ' ' + esc(x.m.time || '') + '</td><td>' + esc(x.m.no || '') + '</td><td>' + esc(U.teamName(x.m.teamA)) + ' vs ' + esc(U.teamName(x.m.teamB)) + '</td><td>' + esc(role ? role[1] : x.role) + '</td></tr>';
+        return '<tr><td>' + esc(U.fmtDate(x.m.date)) + ' ' + esc(x.m.time || '') + '</td><td>' + esc(x.m.no || '') + '</td><td>' + esc(VB.views.jadwal.teamLabel(x.m, 'A')) + ' vs ' + esc(VB.views.jadwal.teamLabel(x.m, 'B')) + '</td><td>' + esc(role ? role[1] : x.role) + '</td></tr>';
       }).join('');
     U.modal({
       title: 'Penugasan: ' + r.name, wide: true,

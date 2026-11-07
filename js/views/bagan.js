@@ -29,7 +29,8 @@
   }
   function existing(a, b) {
     return S.list('matches', function (m) {
-      return m.category === cat && ((m.teamA === a && m.teamB === b) || (m.teamA === b && m.teamB === a));
+      var J = VB.views.jadwal, x = J.teamId(m, 'A'), y = J.teamId(m, 'B');
+      return m.category === cat && ((x === a && y === b) || (x === b && y === a));
     })[0];
   }
   function matchBtn(a, b, pool) {

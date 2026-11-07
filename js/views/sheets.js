@@ -36,13 +36,15 @@
     var R = m.rules || E.defaultRules(m.format);
     var names = VB.views.jadwal.names(m);
     var st = E.compute(m, names);
-    var team = { A: m.teamA ? S.get('teams', m.teamA) : null, B: m.teamB ? S.get('teams', m.teamB) : null };
+    var idA = VB.views.jadwal.teamId(m, 'A'), idB = VB.views.jadwal.teamId(m, 'B');
+    var team = { A: idA ? S.get('teams', idA) : null, B: idB ? S.get('teams', idB) : null };
     // Tim "A" di lembar = tim yang berada di kiri meja pencatat pada set 1
     var sheetA = st.sets[0] ? st.sets[0].leftAtStart : 'A';
     return {
       m: m, comp: comp, R: R, names: names, st: st, team: team,
       sheetA: sheetA, sheetB: E.opp(sheetA), started: st.sets.length > 0,
-      code: function (side) { var t = team[side]; return t && t.code ? t.code : names[side]; },
+      // tim belum diketahui (partai Babak II) -> kotak kode dikosongkan agar diisi tangan
+      code: function (side) { var t = team[side]; return t ? (t.code || t.name) : ((side === 'A' ? m.slotA || m.labelA : m.slotB || m.labelB) ? '' : names[side]); },
       sheetLetter: function (side) { return st.sets.length ? (side === sheetA ? 'A' : 'B') : ''; }
     };
   }
