@@ -1,6 +1,6 @@
 /* Service worker: membuat aplikasi tetap bisa dibuka tanpa internet.
  * Naikkan nomor VERSION setiap kali ada perubahan file agar perangkat mengambil versi baru. */
-var VERSION = 'v3.15.0';
+var VERSION = 'v3.16.0';
 var CACHE = 'scoresheet-' + VERSION;
 var FILES = [
   './', 'index.html', 'manifest.webmanifest',
@@ -28,7 +28,8 @@ self.addEventListener('activate', function (e) {
 self.addEventListener('fetch', function (e) {
   if (e.request.method !== 'GET' || new URL(e.request.url).origin !== location.origin) return;
   e.respondWith(
-    fetch(e.request).then(function (res) {
+    // cache:'no-cache' = selalu tanyakan versi terbaru ke server (GitHub Pages menyimpan file 10 menit di cache browser)
+    fetch(e.request.url, { cache: 'no-cache', credentials: 'same-origin' }).then(function (res) {
       var copy = res.clone();
       caches.open(CACHE).then(function (c) { c.put(e.request, copy); });
       return res;
