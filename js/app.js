@@ -115,7 +115,49 @@
     }).catch(function () { /* offline – pakai data yang sudah ada */ });
   }
 
-  VB.app = { route: route, loadData: loadData };
+  // ---------- Terbitkan perubahan dari perangkat ini ke semua HP ----------
+  function b64e(buf) { var u = new Uint8Array(buf), s = ''; for (var i = 0; i < u.length; i++) s += String.fromCharCode(u[i]); return btoa(s); }
+  function encrypt(obj, pin) {
+    var c = window.crypto.subtle, salt = window.crypto.getRandomValues(new Uint8Array(16)), iv = window.crypto.getRandomValues(new Uint8Array(12)), iter = 250000;
+    return c.importKey('raw', new TextEncoder().encode(normPin(pin)), 'PBKDF2', false, ['deriveKey']).then(function (base) {
+      return c.deriveKey({ name: 'PBKDF2', salt: salt, iterations: iter, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt']);
+    }).then(function (key) {
+      return c.encrypt({ name: 'AES-GCM', iv: iv }, key, new TextEncoder().encode(JSON.stringify(obj)));
+    }).then(function (ct) {
+      var d = new Date(), p = function (n) { return ('0' + n).slice(-2); };
+      var seed = 'porprov-2026-' + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + 'T' + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds());
+      return { v: 1, seed: seed, iter: iter, salt: b64e(salt), iv: b64e(iv), ct: b64e(ct) };
+    });
+  }
+  function publishData() {
+    var S = window.VBStore, pin = S.settings().dataPin;
+    if (!pin) { U.toast('Masukkan PIN data dulu (tombol 🔑 Muat data PORPROV).', 'error'); return; }
+    if (!(window.crypto && window.crypto.subtle)) { U.toast('Browser ini tidak mendukung. Pakai Chrome di laptop.', 'error'); return; }
+    var ev = VB.views.jadwal.eventData();
+    var payload = { teams: S.list('teams'), matches: S.list('matches'), referees: S.list('referees'), competitions: S.list('competitions', function (c) { return c.id === 'porprov-2026'; }), event: ev };
+    U.toast('Menyiapkan file…');
+    encrypt(payload, pin).then(function (enc) {
+      var text = JSON.stringify(enc);
+      function done(saved) {
+        S.setSetting('seedLoaded', enc.seed);
+        U.modal({
+          title: 'File siap', body: '<p>' + (saved ? 'File <b>porprov-2026.enc.json</b> sudah disimpan.' : 'File <b>porprov-2026.enc.json</b> sudah diunduh (folder Download).') + '</p>' +
+            '<ol><li>Pastikan file itu berada di folder <b>scoresheet-wasit\\data</b> dan <b>menimpa</b> file lama' + (saved ? '' : ' (pindahkan dari folder Download)') + '.</li>' +
+            '<li>Buka GitHub Desktop → <b>Commit to main</b> → <b>Push origin</b>.</li>' +
+            '<li>1–2 menit kemudian semua HP otomatis ikut berubah saat aplikasi dibuka.</li></ol>' +
+            '<p class="muted small">Isinya: ' + payload.teams.length + ' tim, ' + payload.matches.length + ' pertandingan, ' + payload.referees.length + ' wasit. Tetap terkunci dengan PIN yang sama.</p>'
+        });
+      }
+      if (window.showSaveFilePicker) {
+        window.showSaveFilePicker({ suggestedName: 'porprov-2026.enc.json', types: [{ description: 'Data PORPROV', accept: { 'application/json': ['.json'] } }] })
+          .then(function (h) { return h.createWritable().then(function (w) { return w.write(text).then(function () { return w.close(); }); }); })
+          .then(function () { done(true); })
+          .catch(function (e) { if (e && e.name === 'AbortError') return; U.download('porprov-2026.enc.json', text); done(false); });
+      } else { U.download('porprov-2026.enc.json', text); done(false); }
+    }).catch(function (e) { U.toast('Gagal membuat file: ' + e.message, 'error'); });
+  }
+
+  VB.app = { route: route, loadData: loadData, publishData: publishData };
   route();
   loadData(false);
 
