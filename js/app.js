@@ -48,9 +48,10 @@
     }).then(function (buf) { return JSON.parse(new TextDecoder().decode(buf)); });
   }
   function applyData(enc, d, pin) {
+    pin = pin || window.VBStore.settings().dataPin || '';
     var st = window.VBStore.importData({ teams: d.teams || [], matches: d.matches || [], competitions: d.competitions || [], referees: d.referees || [] }, 'merge');
     if (d.event) window.VBStore.setSetting('eventData', d.event);
-    window.VBStore.setSetting('dataPin', normPin(pin));
+    if (pin) window.VBStore.setSetting('dataPin', normPin(pin));
     window.VBStore.setSetting('seedLoaded', enc.seed);
     st.cleaned = cleanTestData(d);
     return st;
@@ -103,9 +104,15 @@
   function loadData(force) {
     if (!/^https?:$/.test(location.protocol) || !window.fetch) return;
     fetch(DATA_URL + '?t=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (enc) {
-      if (!enc || !enc.ct) return;
+      if (!enc || !(enc.ct || enc.data)) return;
       var set = window.VBStore.settings();
+      window.VBStore.setSetting('dataOpen', !!enc.data);
       if (!force && set.seedLoaded === enc.seed) return;
+      if (enc.data) {   // data terbuka (tanpa PIN): langsung dimuat
+        var st0 = applyData(enc, enc.data, set.dataPin || '');
+        if (force || st0.added || st0.updated || st0.cleaned) { U.toast('Data PORPROV diperbarui' + (st0.cleaned ? ', data uji coba dibersihkan' : '')); route(); }
+        return;
+      }
       if (set.dataPin && !force) {
         decrypt(enc, set.dataPin).then(function (d) {
           var st = applyData(enc, d, set.dataPin);
@@ -130,13 +137,14 @@
     });
   }
   function publishData() {
-    var S = window.VBStore, pin = S.settings().dataPin;
-    if (!pin) { U.toast('Masukkan PIN data dulu (tombol 🔑 Muat data PORPROV).', 'error'); return; }
-    if (!(window.crypto && window.crypto.subtle)) { U.toast('Browser ini tidak mendukung. Pakai Chrome di laptop.', 'error'); return; }
+    var S = window.VBStore, pin = S.settings().dataPin, open = !!S.settings().dataOpen;
+    if (!open && !pin) { U.toast('Masukkan PIN data dulu (tombol 🔑 Muat data PORPROV).', 'error'); return; }
+    if (!open && !(window.crypto && window.crypto.subtle)) { U.toast('Browser ini tidak mendukung. Pakai Chrome di laptop.', 'error'); return; }
     var ev = VB.views.jadwal.eventData();
     var payload = { teams: S.list('teams'), matches: S.list('matches'), referees: S.list('referees'), competitions: S.list('competitions', function (c) { return c.id === 'porprov-2026'; }), event: ev };
     U.toast('Menyiapkan file…');
-    encrypt(payload, pin).then(function (enc) {
+    var make = open ? Promise.resolve({ v: 1, seed: 'porprov-2026-' + Date.now(), data: payload }) : encrypt(payload, pin);
+    make.then(function (enc) {
       var text = JSON.stringify(enc);
       function done(saved) {
         S.setSetting('seedLoaded', enc.seed);
@@ -145,7 +153,7 @@
             '<ol><li>Pastikan file itu berada di folder <b>scoresheet-wasit\\data</b> dan <b>menimpa</b> file lama' + (saved ? '' : ' (pindahkan dari folder Download)') + '.</li>' +
             '<li>Buka GitHub Desktop → <b>Commit to main</b> → <b>Push origin</b>.</li>' +
             '<li>1–2 menit kemudian semua HP otomatis ikut berubah saat aplikasi dibuka.</li></ol>' +
-            '<p class="muted small">Isinya: ' + payload.teams.length + ' tim, ' + payload.matches.length + ' pertandingan, ' + payload.referees.length + ' wasit. Tetap terkunci dengan PIN yang sama.</p>'
+            '<p class="muted small">Isinya: ' + payload.teams.length + ' tim, ' + payload.matches.length + ' pertandingan, ' + payload.referees.length + ' wasit.' + (open ? '' : ' Tetap terkunci dengan PIN yang sama.') + '</p>'
         });
       }
       if (window.showSaveFilePicker) {
