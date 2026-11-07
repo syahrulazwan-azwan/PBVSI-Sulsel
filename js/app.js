@@ -47,12 +47,27 @@
       return c.decrypt({ name: 'AES-GCM', iv: b64(enc.iv) }, key, b64(enc.ct));
     }).then(function (buf) { return JSON.parse(new TextDecoder().decode(buf)); });
   }
+  var applying = false;
   function applyData(enc, d, pin) {
+    applying = true;
+    try { return applyData0(enc, d, pin); } finally { applying = false; }
+  }
+  function applyData0(enc, d, pin) {
     pin = pin || window.VBStore.settings().dataPin || '';
     var st = window.VBStore.importData({ teams: d.teams || [], matches: d.matches || [], competitions: d.competitions || [], referees: d.referees || [] }, 'merge');
     if (d.event) window.VBStore.setSetting('eventData', d.event);
+    if (d.bagan) window.VBStore.setSetting('baganHasil', d.bagan);
+    // data yang dihapus di perangkat admin ikut terhapus (kecuali yang dibuat di sini setelah data terbit)
+    if (d.publishedAt) {
+      var S = window.VBStore, keep = {};
+      ['teams', 'matches', 'referees'].forEach(function (c) {
+        keep = {}; (d[c] || []).forEach(function (x) { keep[x.id] = 1; });
+        S.list(c).forEach(function (x) { if (!keep[x.id] && (x.updatedAt || '') < d.publishedAt) { S.remove(c, x.id); st.removed = (st.removed || 0) + 1; } });
+      });
+    }
     if (pin) window.VBStore.setSetting('dataPin', normPin(pin));
     window.VBStore.setSetting('seedLoaded', enc.seed);
+    if (d.publishedAt) window.VBStore.setSetting('pubLoaded', d.publishedAt);
     st.cleaned = cleanTestData(d);
     return st;
   }
@@ -108,9 +123,12 @@
       var set = window.VBStore.settings();
       window.VBStore.setSetting('dataOpen', !!enc.data);
       if (!force && set.seedLoaded === enc.seed) return;
+      // file lama (GitHub Pages belum selesai memperbarui) jangan menimpa data yang lebih baru
+      if (!force && enc.data && enc.data.publishedAt && set.pubLoaded && enc.data.publishedAt <= set.pubLoaded) return;
       if (enc.data) {   // data terbuka (tanpa PIN): langsung dimuat
         var st0 = applyData(enc, enc.data, set.dataPin || '');
-        if (force || st0.added || st0.updated || st0.cleaned) { U.toast('Data PORPROV diperbarui' + (st0.cleaned ? ', data uji coba dibersihkan' : '')); route(); }
+        if (token()) lsSet(HASH_KEY, hashStr(JSON.stringify(buildPayload())));
+        if (force || st0.added || st0.updated || st0.cleaned || st0.removed) { U.toast('Data PORPROV diperbarui' + (st0.cleaned ? ', data uji coba dibersihkan' : '')); route(); }
         return;
       }
       if (set.dataPin && !force) {
@@ -165,7 +183,110 @@
     }).catch(function (e) { U.toast('Gagal membuat file: ' + e.message, 'error'); });
   }
 
-  VB.app = { route: route, loadData: loadData, publishData: publishData };
+  // ---------- Sinkron otomatis lewat GitHub (tanpa GitHub Desktop) ----------
+  // Token disimpan terpisah (bukan di data/backup) dan hanya di perangkat admin.
+  var GH = { owner: 'syahrulazwan-azwan', repo: 'PBVSI-Sulsel', branch: 'main', path: 'data/porprov-2026.enc.json' };
+  var TOKEN_KEY = 'vb-gh-token', HASH_KEY = 'vb-gh-lasthash';
+  function lsGet(k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }
+  function lsSet(k, v) { try { if (v) localStorage.setItem(k, v); else localStorage.removeItem(k); } catch (e) { /* abaikan */ } }
+  function token() { return lsGet(TOKEN_KEY); }
+  function gh(method, url, body) {
+    return fetch('https://api.github.com/repos/' + GH.owner + '/' + GH.repo + url, {
+      method: method, cache: 'no-store',
+      headers: { 'Authorization': 'Bearer ' + token(), 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' },
+      body: body ? JSON.stringify(body) : undefined
+    }).then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { j._status = r.status; return j; }); });
+  }
+  function utf8b64(str) { return btoa(unescape(encodeURIComponent(str))); }
+  function b64utf8(b) { return decodeURIComponent(escape(atob(String(b).replace(/\s/g, '')))); }
+  function hashStr(str) { var h = 0; for (var i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0; return String(h) + ':' + str.length; }
+  function buildPayload() {
+    var S = window.VBStore;
+    return { teams: S.list('teams'), matches: S.list('matches'), referees: S.list('referees'),
+      competitions: S.list('competitions', function (c) { return c.id === 'porprov-2026'; }),
+      event: VB.views.jadwal.eventData(), bagan: S.settings().baganHasil || {} };
+  }
+  var badge;
+  function setStatus(txt, cls) {
+    if (!token()) { if (badge) badge.style.display = 'none'; return; }
+    if (!badge) { badge = document.createElement('div'); badge.className = 'sync-badge no-print'; document.body.appendChild(badge); badge.onclick = function () { syncSettings(); }; }
+    badge.style.display = ''; badge.className = 'sync-badge no-print ' + (cls || ''); badge.textContent = txt;
+  }
+  var busy = false, again = false, timer = null;
+  function schedulePush() { if (!token() || applying) return; clearTimeout(timer); setStatus('⏳ Menunggu…'); timer = setTimeout(pushNow, 12000); }
+  function pushNow() {
+    if (!token()) return Promise.resolve();
+    if (busy) { again = true; return Promise.resolve(); }
+    busy = true; setStatus('⏳ Menyimpan ke semua HP…');
+    return gh('GET', '/contents/' + GH.path + '?ref=' + GH.branch).then(function (cur) {
+      if (cur._status === 401 || cur._status === 403) throw new Error('Token ditolak GitHub (cek izin atau masa berlaku).');
+      var sha = cur.sha;
+      // ada perubahan dari admin lain? gabungkan dulu
+      if (cur.content) {
+        try {
+          var remote = JSON.parse(b64utf8(cur.content));
+          if (remote && remote.data && remote.seed !== window.VBStore.settings().seedLoaded) applyData(remote, remote.data, '');
+        } catch (e) { /* abaikan */ }
+      }
+      var p = buildPayload(), h = hashStr(JSON.stringify(p));
+      if (h === lsGet(HASH_KEY) && cur.content) return { skip: true };
+      p.publishedAt = new Date().toISOString();
+      var file = { v: 1, seed: 'porprov-2026-' + Date.now(), data: p };
+      return gh('PUT', '/contents/' + GH.path, { message: 'Perbarui data (otomatis dari aplikasi)', content: utf8b64(JSON.stringify(file)), sha: sha, branch: GH.branch })
+        .then(function (res) {
+          if (res._status === 409 || res._status === 422) { again = true; return { retry: true }; }
+          if (res._status >= 300) throw new Error(res.message || ('Gagal (' + res._status + ')'));
+          applying = true; window.VBStore.setSetting('seedLoaded', file.seed); window.VBStore.setSetting('pubLoaded', p.publishedAt); applying = false; lsSet(HASH_KEY, h);
+          return { ok: true };
+        });
+    }).then(function (r) {
+      busy = false;
+      setStatus(r && r.retry ? '⏳ Mengulang…' : '☁️ Tersimpan untuk semua HP', 'ok');
+      if (again) { again = false; setTimeout(pushNow, 1500); }
+    }).catch(function (e) {
+      busy = false; setStatus('⚠️ Gagal simpan – ketuk', 'err'); U.toast(e.message, 'error');
+    });
+  }
+  function syncSettings() {
+    var on = !!token();
+    U.modal({
+      title: 'Sinkron otomatis ke semua HP', wide: true,
+      body: (on ? '<p class="alert ok-box">✅ Aktif di perangkat ini. Setiap perubahan otomatis tersimpan dan semua HP ikut berubah sekitar 1–2 menit kemudian. Tidak perlu GitHub Desktop.</p>' :
+        '<p>Aktifkan di <b>laptop/HP admin</b> saja (yang dipakai mengubah data). HP lain cukup membuka link, otomatis ikut berubah.</p>') +
+        '<details' + (on ? '' : ' open') + '><summary><b>Cara membuat kunci (token) GitHub – sekali saja</b></summary><ol class="small">' +
+        '<li>Masuk ke github.com dengan akun Bapak, buka <b>Settings → Developer settings → Personal access tokens → Fine-grained tokens</b> → <b>Generate new token</b>.</li>' +
+        '<li>Nama bebas (mis. <i>Scoresheet</i>), Expiration: <b>30 days</b>.</li>' +
+        '<li>Repository access: <b>Only select repositories</b> → pilih <b>PBVSI-Sulsel</b>.</li>' +
+        '<li>Permissions → Repository permissions → <b>Contents: Read and write</b>.</li>' +
+        '<li>Klik <b>Generate token</b>, salin kodenya (diawali <code>github_pat_</code>), lalu tempel di bawah. Jangan bagikan kode ini ke siapa pun.</li></ol></details>' +
+        '<label class="mt">Token GitHub<input id="ghtok" type="password" autocomplete="off" placeholder="' + (on ? '•••••••• (tersimpan)' : 'github_pat_…') + '"></label>' +
+        '<p class="muted small">Token hanya disimpan di perangkat ini, tidak ikut ke data atau backup.</p>',
+      actions: [{ label: on ? 'Matikan' : 'Batal', cls: on ? 'danger ghost' : '', value: on ? 'off' : null },
+        { label: 'Unduh file manual', value: 'manual' },
+        { label: 'Simpan & aktifkan', cls: 'primary', value: 'save', onClick: function (root) { syncSettings._v = U.qs('#ghtok', root).value.trim(); } }]
+    }).then(function (v) {
+      if (v === 'off') { lsSet(TOKEN_KEY, ''); lsSet(HASH_KEY, ''); setStatus(''); U.toast('Sinkron otomatis dimatikan di perangkat ini'); return; }
+      if (v === 'manual') { publishData(); return; }
+      if (v !== 'save') return;
+      var t = syncSettings._v || token();
+      if (!t) { U.toast('Token belum diisi', 'error'); return; }
+      var old = token(); lsSet(TOKEN_KEY, t);
+      gh('GET', '').then(function (r) {
+        if (r._status !== 200 || !(r.permissions && r.permissions.push)) {
+          lsSet(TOKEN_KEY, old); U.toast('Token tidak bisa dipakai: pastikan repo PBVSI-Sulsel dipilih dan izin Contents = Read and write.', 'error'); return;
+        }
+        U.toast('Sinkron otomatis aktif'); lsSet(HASH_KEY, ''); pushNow();
+      }).catch(function () { lsSet(TOKEN_KEY, old); U.toast('Tidak bisa menghubungi GitHub. Cek internet.', 'error'); });
+    });
+  }
+  window.VBStore.onChange(schedulePush);
+  if (token()) setStatus('☁️ Sinkron aktif', 'ok');
+
+  // HP penonton: cek data baru tiap 45 detik saat aplikasi terbuka, dan saat aplikasi dibuka kembali
+  setInterval(function () { if (!document.hidden && !busy) loadData(false); }, 45000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) loadData(false); });
+
+  VB.app = { route: route, loadData: loadData, publishData: publishData, syncSettings: syncSettings, pushNow: pushNow };
   route();
   loadData(false);
 

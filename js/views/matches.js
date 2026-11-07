@@ -284,7 +284,7 @@
       });
       html += '</tbody></table></div>';
     }
-    html += '<div class="footer-tools"><span class="muted small">Data tersimpan di perangkat ini.</span><button class="btn small ghost" id="exp">Unduh backup</button><button class="btn small ghost" id="imp">Impor backup</button><button class="btn small ghost" id="pinbtn">🔑 Muat data PORPROV</button><button class="btn small" id="pubbtn" title="Kirim perubahan di perangkat ini (wasit, libero, dll.) ke semua HP">📤 Terbitkan ke semua HP</button></div>';
+    html += '<div class="footer-tools"><span class="muted small">Data tersimpan di perangkat ini.</span><button class="btn small ghost" id="exp">Unduh backup</button><button class="btn small ghost" id="imp">Impor backup</button><button class="btn small ghost" id="pinbtn">🔑 Muat data PORPROV</button><button class="btn small" id="pubbtn" title="Perubahan di perangkat ini otomatis terkirim ke semua HP">☁️ Sinkron otomatis</button></div>';
     el.innerHTML = html;
 
     U.qs('#add', el).onclick = function () { edit(null).then(function () { render(el); }); };
@@ -297,7 +297,7 @@
     U.qs('#exp', el).onclick = function () { U.download('backup-scoresheet-' + VB.views.pengaturan.stamp() + '.json', S.exportAll()); };
     U.qs('#imp', el).onclick = function () { VB.views.pengaturan.doImport(); };
     U.qs('#pinbtn', el).onclick = function () { VB.app.loadData(true); };
-    U.qs('#pubbtn', el).onclick = function () { VB.app.publishData(); };
+    U.qs('#pubbtn', el).onclick = function () { VB.app.syncSettings(); };
 
     function selIds() { return list.filter(function (m) { return selected[m.id]; }).map(function (m) { return m.id; }); }
     function updSel() {
