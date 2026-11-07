@@ -72,6 +72,7 @@
   }
 
   function render(el) {
+    cat = S.settings().uiCat || cat;
     document.body.classList.add('print-bagan');
     var p = pools(cat), pn = poolNames(p), sl = slots(pn);
     var sub = S.settings().baganJudul || DEF_SUB;
@@ -144,7 +145,7 @@
   }
 
   function wire(el) {
-    U.qsa('[data-cat]', el).forEach(function (b) { b.onclick = function () { cat = b.dataset.cat; render(el); }; });
+    U.qsa('[data-cat]', el).forEach(function (b) { b.onclick = function () { cat = b.dataset.cat; S.setSetting('uiCat', cat); render(el); }; });
     var prt = U.qs('#prt', el); if (prt) prt.onclick = function () { window.print(); };
     var sub = U.qs('#sub', el); if (sub) sub.onchange = function () { S.setSetting('baganJudul', sub.value.trim() || DEF_SUB); render(el); };
     U.qsa('select[data-pool]', el).forEach(function (s) { s.onchange = function () { setHasil(s.dataset.pool, s.dataset.rank, s.value); render(el); }; });

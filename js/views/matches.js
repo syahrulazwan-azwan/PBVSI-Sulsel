@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   var S = window.VBStore, U = window.VBUI, E = window.VBEngine, esc = U.esc;
-  var filt = { format: '', category: '', q: '' };
+  var filt = { format: '', category: (S.settings().uiCat || 'PA'), q: '' };
   var selected = {};
 
   function names(m) { return { A: teamLabel(m, 'A'), B: teamLabel(m, 'B') }; }
@@ -135,7 +135,7 @@
     if (!m || (!m.id && !copy)) {
       // baru (boleh membawa isian awal, mis. dari menu Bagan: tim A/B & pool)
       var ev = eventData(), prev = S.list('matches').slice(-1)[0] || {};
-      m = Object.assign({ competitionId: base.id, no: nextNo(), date: prev.date || U.today(), time: '', format: 'indoor6', category: prev.category || 'PA', age: ev.age || 'Senior',
+      m = Object.assign({ competitionId: base.id, no: nextNo(), date: prev.date || U.today(), time: '', format: 'indoor6', category: filt.category || prev.category || 'PA', age: ev.age || 'Senior',
         court: courtList(ev)[0] || '', officials: {}, compName: ev.compName, city: ev.city, hall: ev.hall, ccode: ev.ccode }, m || {});
     } else if (copy) {
       m = Object.assign({}, m, { id: null, no: nextNo(), teamA: '', teamB: '', note: '', time: '', pool: '' });
@@ -191,6 +191,12 @@
     });
   }
 
+  function catCounts() {
+    var c = { '': 0, PA: 0, PI: 0 };
+    S.list('matches', function (m) { return !filt.format || m.format === filt.format; }).forEach(function (m) { c['']++; if (c[m.category] != null) c[m.category]++; });
+    return c;
+  }
+
   function filtered() {
     var q = filt.q.toLowerCase();
     return S.list('matches', function (m) {
@@ -227,8 +233,8 @@
     var html = banner() +
       '<div class="page-head mt"><h1>Daftar Scoresheet</h1><div class="row gap"><button class="btn" id="blank">Blanko kosong</button><button class="btn primary" id="add">+ Buat scoresheet</button></div></div>' +
       evCard() +
-      '<div class="filters"><select id="ff">' + U.formatOptions(filt.format, true) + '</select>' +
-      '<select id="fc">' + U.catOptions(filt.category, true) + '</select>' +
+      '<div class="filters">' + VB.views.tim.catTabs(filt.category, catCounts(), true) + '<select id="ff">' + U.formatOptions(filt.format, true) + '</select>' +
+
       '<input id="fq" type="search" placeholder="Cari tim / no. / pool" value="' + esc(filt.q) + '"></div>';
     if (!list.length) {
       html += U.emptyState('Belum ada scoresheet', 'Isi data tim dan wasit terlebih dahulu, lalu klik "+ Buat scoresheet".', '<div class="row gap center"><a class="btn" href="#/tim">Isi data tim</a><a class="btn" href="#/wasit">Isi data wasit</a></div>');
@@ -260,7 +266,7 @@
     U.qs('#blank', el).onclick = blankMenu;
     U.qs('#evbtn', el).onclick = function () { editEvent().then(function () { render(el); }); };
     U.qs('#ff', el).onchange = function () { filt.format = this.value; render(el); };
-    U.qs('#fc', el).onchange = function () { filt.category = this.value; render(el); };
+    U.qsa('.cat-tab', el).forEach(function (b) { b.onclick = function () { filt.category = b.dataset.cat; if (b.dataset.cat) S.setSetting('uiCat', b.dataset.cat); render(el); }; });
     var fq = U.qs('#fq', el);
     fq.oninput = function () { filt.q = this.value; clearTimeout(fq._t); fq._t = setTimeout(function () { render(el); var f = U.qs('#fq', el); f.focus(); f.setSelectionRange(f.value.length, f.value.length); }, 250); };
     U.qs('#exp', el).onclick = function () { U.download('backup-scoresheet-' + VB.views.pengaturan.stamp() + '.json', S.exportAll()); };

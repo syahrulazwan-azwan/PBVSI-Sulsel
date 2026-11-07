@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   var S = window.VBStore, U = window.VBUI, E = window.VBEngine, esc = U.esc;
-  var filt = { format: '', category: '' };
+  var filt = { format: 'indoor6', category: (S.settings().uiCat || 'PA') };
 
   var OFFICIALS = [['C', 'Pelatih (C)'], ['AC1', 'Asisten pelatih 1 (AC1)'], ['AC2', 'Asisten pelatih 2 (AC2)'], ['T', 'Terapis (T)'], ['M', 'Dokter/Medis (M)']];
 
@@ -126,30 +126,47 @@
     return ((a.pool || '') + a.name).localeCompare((b.pool || '') + b.name);
   }
 
+  /** tombol Putra | Putri (dipakai juga di menu Scoresheet) */
+  function catTabs(cur, counts, withAll) {
+    var keys = (withAll ? [''] : []).concat(['PA', 'PI']);
+    return '<div class="cat-tabs" role="tablist">' + keys.map(function (k) {
+      var lbl = k ? U.catLabel(k) : 'Semua';
+      return '<button type="button" role="tab" class="cat-tab' + (cur === k ? ' on' : '') + '" data-cat="' + k + '">' + lbl +
+        (counts && counts[k] != null ? ' <span class="cnt">' + counts[k] + '</span>' : '') + '</button>';
+    }).join('') + '</div>';
+  }
+  function card(t) {
+    var cap = (t.players || []).filter(function (p) { return p.captain; })[0];
+    var lib = (t.players || []).filter(function (p) { return p.libero; }).length;
+    return '<div class="card"><div class="card-title">' + (t.seed ? '<span class="seed">' + esc(pad(t.seed)) + '</span> ' : '') + esc(t.name) + (t.code ? ' <span class="badge">' + esc(t.code) + '</span>' : '') + '</div>' +
+      '<div class="muted">' + U.formatLabel(t.format) + ' • ' + U.catLabel(t.category) + (t.pool ? ' • Pool ' + esc(t.pool) : '') + '</div>' +
+      '<div class="muted">' + (t.players || []).length + ' pemain (' + lib + ' libero)' + (cap ? ' • Kapten #' + esc(cap.no) : '') + '</div>' +
+      (t.officials && t.officials.C ? '<div class="muted small">Pelatih: ' + esc(t.officials.C) + '</div>' : '') +
+      '<div class="card-actions"><button class="btn small" data-act="edit" data-id="' + t.id + '">Ubah</button>' +
+      '<button class="btn small danger ghost" data-act="del" data-id="' + t.id + '">Hapus</button></div></div>';
+  }
+
   function render(el) {
+    var inFmt = S.list('teams', function (t) { return !filt.format || t.format === filt.format; });
+    var counts = { PA: 0, PI: 0 };
+    inFmt.forEach(function (t) { if (counts[t.category] != null) counts[t.category]++; });
     var html = '<div class="page-head"><h1>Tim &amp; Pemain</h1><button class="btn primary" id="add">+ Tim</button></div>';
-    html += '<div class="filters"><select id="ff">' + U.formatOptions(filt.format, true) + '</select>' +
-      '<select id="fc">' + U.catOptions(filt.category, true) + '</select></div>';
-    var teams = S.list('teams', function (t) {
-      return (!filt.format || t.format === filt.format) && (!filt.category || t.category === filt.category);
-    }).sort(sortTeams);
-    if (!teams.length) html += U.emptyState('Belum ada tim', 'Tambahkan tim beserta daftar pemain dan ofisialnya. Data ini akan tercetak di scoresheet.');
+    html += '<div class="filters">' + catTabs(filt.category, counts) + '<select id="ff">' + U.formatOptions(filt.format, true) + '</select></div>';
+    var teams = inFmt.filter(function (t) { return t.category === filt.category; }).sort(sortTeams);
+    if (!teams.length) html += U.emptyState('Belum ada tim ' + U.catLabel(filt.category), 'Tambahkan tim beserta daftar pemain dan ofisialnya, atau impor file data tim.');
     else {
-      html += '<div class="cards">';
-      teams.forEach(function (t) {
-        var cap = (t.players || []).filter(function (p) { return p.captain; })[0];
-        html += '<div class="card"><div class="card-title">' + esc(t.name) + (t.code ? ' <span class="badge">' + esc(t.code) + '</span>' : '') + '</div>' +
-          '<div class="muted">' + U.formatLabel(t.format) + ' • ' + U.catLabel(t.category) + (t.pool ? ' • Pool ' + esc(t.pool) : '') + (t.seed ? ' • No. urut ' + esc(pad(t.seed)) : '') + '</div>' +
-          '<div class="muted">' + (t.players || []).length + ' pemain' + (cap ? ' • Kapten #' + esc(cap.no) : '') + (t.officials && t.officials.C ? ' • Pelatih: ' + esc(t.officials.C) : '') + '</div>' +
-          '<div class="card-actions"><button class="btn small" data-act="edit" data-id="' + t.id + '">Ubah</button>' +
-          '<button class="btn small danger ghost" data-act="del" data-id="' + t.id + '">Hapus</button></div></div>';
+      // dikelompokkan per pool
+      var groups = {}, order = [];
+      teams.forEach(function (t) { var k = t.pool ? String(t.pool).toUpperCase() : ''; if (!groups[k]) { groups[k] = []; order.push(k); } groups[k].push(t); });
+      order.sort(function (a, b) { return (!a) - (!b) || a.length - b.length || a.localeCompare(b); });
+      order.forEach(function (k) {
+        html += '<h3 class="pool-h">' + (k ? 'Pool ' + esc(k) : 'Tanpa pool') + ' <span class="muted small">(' + groups[k].length + ' tim)</span></h3><div class="cards">' + groups[k].map(card).join('') + '</div>';
       });
-      html += '</div>';
     }
     el.innerHTML = html;
     U.qs('#add', el).onclick = function () { edit(null).then(function () { render(el); }); };
     U.qs('#ff', el).onchange = function () { filt.format = this.value; render(el); };
-    U.qs('#fc', el).onchange = function () { filt.category = this.value; render(el); };
+    U.qsa('.cat-tab', el).forEach(function (b) { b.onclick = function () { filt.category = b.dataset.cat; S.setSetting('uiCat', filt.category); render(el); }; });
     U.qsa('[data-act]', el).forEach(function (b) {
       b.onclick = function () {
         var t = S.get('teams', b.dataset.id);
@@ -159,5 +176,5 @@
     });
   }
 
-  VB.views.tim = { render: render, edit: edit, OFFICIALS: OFFICIALS, sortTeams: sortTeams, pad: pad };
+  VB.views.tim = { render: render, edit: edit, OFFICIALS: OFFICIALS, sortTeams: sortTeams, pad: pad, catTabs: catTabs };
 })();
