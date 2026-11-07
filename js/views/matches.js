@@ -38,10 +38,12 @@
 
   /** Data kegiatan: diisi sekali, otomatis dipakai di setiap scoresheet */
   function eventData() {
-    var ev = S.settings().event;
-    if (ev) return ev;
-    var lc = lastComp();
-    return { compName: lc.compName || '', city: lc.city || '', hall: lc.hall || '', ccode: lc.ccode || 'SLS', age: 'Senior', courts: '' };
+    // urutan: isian di perangkat ini -> data resmi dari link -> data lama
+    var own = S.settings().event || {}, dat = S.settings().eventData || {}, lc = lastComp();
+    var base = { compName: lc.compName || '', city: lc.city || '', hall: lc.hall || '', ccode: lc.ccode || 'SLS', age: 'Senior', courts: '' };
+    var ev = {};
+    Object.keys(base).forEach(function (k) { ev[k] = own[k] || dat[k] || base[k]; });
+    return ev;
   }
   function courtList(ev) {
     return String((ev || eventData()).courts || '').split(/[,;/]/).map(function (x) { return x.trim(); }).filter(Boolean);
@@ -275,7 +277,7 @@
       });
       html += '</tbody></table></div>';
     }
-    html += '<div class="footer-tools"><span class="muted small">Data tersimpan di perangkat ini.</span><button class="btn small ghost" id="exp">Unduh backup</button><button class="btn small ghost" id="imp">Impor backup</button></div>';
+    html += '<div class="footer-tools"><span class="muted small">Data tersimpan di perangkat ini.</span><button class="btn small ghost" id="exp">Unduh backup</button><button class="btn small ghost" id="imp">Impor backup</button><button class="btn small ghost" id="pinbtn">🔑 Muat data PORPROV</button></div>';
     el.innerHTML = html;
 
     U.qs('#add', el).onclick = function () { edit(null).then(function () { render(el); }); };
@@ -287,6 +289,7 @@
     fq.oninput = function () { filt.q = this.value; clearTimeout(fq._t); fq._t = setTimeout(function () { render(el); var f = U.qs('#fq', el); f.focus(); f.setSelectionRange(f.value.length, f.value.length); }, 250); };
     U.qs('#exp', el).onclick = function () { U.download('backup-scoresheet-' + VB.views.pengaturan.stamp() + '.json', S.exportAll()); };
     U.qs('#imp', el).onclick = function () { VB.views.pengaturan.doImport(); };
+    U.qs('#pinbtn', el).onclick = function () { VB.app.loadData(true); };
 
     function selIds() { return list.filter(function (m) { return selected[m.id]; }).map(function (m) { return m.id; }); }
     function updSel() {

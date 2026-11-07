@@ -1,6 +1,6 @@
 /* Service worker: membuat aplikasi tetap bisa dibuka tanpa internet.
  * Naikkan nomor VERSION setiap kali ada perubahan file agar perangkat mengambil versi baru. */
-var VERSION = 'v3.8.0';
+var VERSION = 'v3.9.0';
 var CACHE = 'scoresheet-' + VERSION;
 var FILES = [
   './', 'index.html', 'manifest.webmanifest',
@@ -9,6 +9,7 @@ var FILES = [
   'js/views/teams.js', 'js/views/referees.js',
   'js/views/matches.js', 'js/views/sheets.js', 'js/views/form-layouts.js', 'js/views/forms.js', 'js/views/forms-beach.js', 'js/views/print.js', 'js/views/settings.js', 'js/views/bagan.js',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
+  'data/porprov-2026.enc.json',
   'img/pbvsi.png', 'img/porprov-2026.jpg', 'img/maskot-porprov-2026.jpg',
   'img/tpl/indoor-w4.png', 'img/tpl/beach2-1.png', 'img/tpl/beach2-2.png', 'img/tpl/beach4-1.png', 'img/tpl/beach4-2.png'
 ];

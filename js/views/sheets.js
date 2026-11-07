@@ -28,9 +28,11 @@
   function buildCtx(m) {
     var base = S.get('competitions', m.competitionId) || {};
     // data kompetisi diisi per scoresheet; bila kosong pakai data kejuaraan lama
+    var ev = VB.views.jadwal.eventData ? VB.views.jadwal.eventData() : {};
+    function pick(v, e, b) { return v != null && v !== '' ? v : (e || b || ''); }
     var comp = {
-      name: m.compName != null ? m.compName : base.name, city: m.city != null ? m.city : base.city,
-      venue: m.hall != null ? m.hall : base.venue, countryCode: m.ccode != null ? m.ccode : base.countryCode,
+      name: pick(m.compName, ev.compName, base.name), city: pick(m.city, ev.city, base.city),
+      venue: pick(m.hall, ev.hall, base.venue), countryCode: pick(m.ccode, ev.ccode, base.countryCode),
       organizer: base.organizer || ''
     };
     var R = m.rules || E.defaultRules(m.format);
