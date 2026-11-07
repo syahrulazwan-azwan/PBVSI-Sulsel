@@ -26,6 +26,7 @@
       '<label class="span2">Nama tim<input name="name" required value="' + esc(t.name) + '" placeholder="MAROS"></label>' +
       '<label>Kode tim (3 huruf)<input name="code" maxlength="5" value="' + esc(t.code) + '" placeholder="MRS"></label>' +
       '<label>Pool / Grup<input name="pool" value="' + esc(t.pool) + '" placeholder="A"></label>' +
+      '<label>No. urut (bagan)<input name="seed" inputmode="numeric" value="' + esc(t.seed) + '" placeholder="01"></label>' +
       '<label>Format<select name="format">' + U.formatOptions(t.format) + '</select></label>' +
       '<label>Kategori<select name="category">' + U.catOptions(t.category) + '</select></label>' +
       '</form>' +
@@ -114,20 +115,31 @@
     });
   }
 
+  function pad(n) { n = String(n || ''); return n.length === 1 ? '0' + n : n; }
+  /** urutan: format, kategori, no. urut bagan, lalu nama */
+  function sortTeams(a, b) {
+    var FO = { indoor6: 0, beach2: 1, beach4: 2 };
+    var k = ((FO[a.format] || 0) - (FO[b.format] || 0)) || (a.category || '').localeCompare(b.category || '');
+    if (k) return k;
+    var sa = parseInt(a.seed, 10) || 999, sb = parseInt(b.seed, 10) || 999;
+    if (sa !== sb) return sa - sb;
+    return ((a.pool || '') + a.name).localeCompare((b.pool || '') + b.name);
+  }
+
   function render(el) {
     var html = '<div class="page-head"><h1>Tim &amp; Pemain</h1><button class="btn primary" id="add">+ Tim</button></div>';
     html += '<div class="filters"><select id="ff">' + U.formatOptions(filt.format, true) + '</select>' +
       '<select id="fc">' + U.catOptions(filt.category, true) + '</select></div>';
     var teams = S.list('teams', function (t) {
       return (!filt.format || t.format === filt.format) && (!filt.category || t.category === filt.category);
-    }).sort(function (a, b) { return (a.format + a.category + (a.pool || '') + a.name).localeCompare(b.format + b.category + (b.pool || '') + b.name); });
+    }).sort(sortTeams);
     if (!teams.length) html += U.emptyState('Belum ada tim', 'Tambahkan tim beserta daftar pemain dan ofisialnya. Data ini akan tercetak di scoresheet.');
     else {
       html += '<div class="cards">';
       teams.forEach(function (t) {
         var cap = (t.players || []).filter(function (p) { return p.captain; })[0];
         html += '<div class="card"><div class="card-title">' + esc(t.name) + (t.code ? ' <span class="badge">' + esc(t.code) + '</span>' : '') + '</div>' +
-          '<div class="muted">' + U.formatLabel(t.format) + ' • ' + U.catLabel(t.category) + (t.pool ? ' • Pool ' + esc(t.pool) : '') + '</div>' +
+          '<div class="muted">' + U.formatLabel(t.format) + ' • ' + U.catLabel(t.category) + (t.pool ? ' • Pool ' + esc(t.pool) : '') + (t.seed ? ' • No. urut ' + esc(pad(t.seed)) : '') + '</div>' +
           '<div class="muted">' + (t.players || []).length + ' pemain' + (cap ? ' • Kapten #' + esc(cap.no) : '') + (t.officials && t.officials.C ? ' • Pelatih: ' + esc(t.officials.C) : '') + '</div>' +
           '<div class="card-actions"><button class="btn small" data-act="edit" data-id="' + t.id + '">Ubah</button>' +
           '<button class="btn small danger ghost" data-act="del" data-id="' + t.id + '">Hapus</button></div></div>';
@@ -147,5 +159,5 @@
     });
   }
 
-  VB.views.tim = { render: render, edit: edit, OFFICIALS: OFFICIALS };
+  VB.views.tim = { render: render, edit: edit, OFFICIALS: OFFICIALS, sortTeams: sortTeams, pad: pad };
 })();

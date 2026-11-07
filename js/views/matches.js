@@ -36,7 +36,7 @@
   function teamOptions(format, cat, sel) {
     var o = '<option value="">— pilih tim —</option>';
     S.list('teams', function (t) { return t.format === format && t.category === cat; })
-      .sort(function (a, b) { return ((a.pool || '') + a.name).localeCompare((b.pool || '') + b.name); })
+      .sort(VB.views.tim.sortTeams)
       .forEach(function (t) { o += '<option value="' + t.id + '"' + (t.id === sel ? ' selected' : '') + '>' + esc((t.pool ? '[' + t.pool + '] ' : '') + t.name + (t.code ? ' (' + t.code + ')' : '')) + '</option>'; });
     return o;
   }
@@ -84,11 +84,12 @@
   }
 
   function edit(m, copy) {
-    var isNew = !m || copy;
+    var isNew = !m || copy || !m.id;
     var base = baseComp();
-    if (!m) {
+    if (!m || (!m.id && !copy)) {
+      // baru (boleh membawa isian awal, mis. dari menu Bagan: tim A/B & pool)
       var lc = lastComp(), prev = S.list('matches').slice(-1)[0] || {};
-      m = Object.assign({ competitionId: base.id, no: nextNo(), date: U.today(), format: prev.format || 'indoor6', category: prev.category || 'PA', age: 'Senior', officials: {} }, lc);
+      m = Object.assign({ competitionId: base.id, no: nextNo(), date: U.today(), format: prev.format || 'indoor6', category: prev.category || 'PA', age: 'Senior', officials: {} }, lc, m || {});
     } else if (copy) {
       m = Object.assign({}, m, { id: null, no: nextNo(), teamA: '', teamB: '', note: '' });
       m.officials = Object.assign({}, m.officials || {});

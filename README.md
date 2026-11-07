@@ -21,13 +21,14 @@ Poin, line-up, rotasi/service rounds, time-out, pergantian, sanksi dan hasil **d
 
 ## Cara memakai
 
-Aplikasi hanya punya 3 menu: **Scoresheet**, **Tim**, **Wasit**.
+Aplikasi punya 4 menu: **Scoresheet**, **Tim**, **Wasit**, **Bagan**.
 
 1. **Tim → + Tim**: nama & kode tim (mis. MRS), format, kategori, pool, daftar pemain (bisa **tempel dari Excel**: kolom No. dan Nama, tambahkan © untuk kapten dan (L) untuk libero), pelatih & ofisial.
 2. **Wasit → + Wasit**: nama, lisensi, asal, kode asal (mis. TKR).
 3. **Scoresheet → + Buat scoresheet**: nama kompetisi, kota, hall, kode wilayah (otomatis terisi dari scoresheet sebelumnya), no. pertandingan, tanggal, jam, lapangan, pool, tim A vs tim B, kostum, dan penugasan wasit.
 4. Klik **🖨️ Cetak** (atau centang beberapa lalu **Cetak terpilih**). Di jendela cetak pilih **A4 – Landscape**, margin **None/Tidak ada**, skala **100%**.
-5. Tombol **⧉** menyalin scoresheet (kompetisi, tanggal & wasit) untuk pertandingan berikutnya. **Blanko kosong** mencetak formulir tanpa data.
+5. **Bagan**: pembagian pool Babak I (dari isian *Pool* dan *No. urut* tiap tim) dan bagan Babak II. Tombol **+ Scoresheet** di tiap partai langsung membuat scoresheet dengan tim yang sudah terisi. Bisa dicetak A4 tegak.
+6. Tombol **⧉** menyalin scoresheet (kompetisi, tanggal & wasit) untuk pertandingan berikutnya. **Blanko kosong** mencetak formulir tanpa data.
 
 > Data tersimpan di browser perangkat masing-masing (tidak di GitHub). Pakai **Unduh backup / Impor backup** di bagian bawah halaman Scoresheet.
 

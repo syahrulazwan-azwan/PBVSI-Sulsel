@@ -5,7 +5,7 @@
   var current = null;
 
   var routes = {
-    '': 'jadwal', jadwal: 'jadwal', tim: 'tim', wasit: 'wasit', cetak: 'cetak'
+    '': 'jadwal', jadwal: 'jadwal', tim: 'tim', wasit: 'wasit', bagan: 'bagan', cetak: 'cetak'
   };
 
   function route() {

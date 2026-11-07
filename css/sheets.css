@@ -133,3 +133,32 @@
   body.print-tpl .tpage { box-shadow: none; page-break-after: always; break-after: page; width: 297mm; max-width: none; height: 210mm; }
   body.print-tpl .tpage:last-child { page-break-after: auto; break-after: auto; }
 }
+
+/* ===== Bagan pertandingan ===== */
+.seg { display: inline-flex; gap: 2px; }
+.bagan-page { background: #fff; color: #000; max-width: 190mm; margin: 0 auto; padding: 10mm 12mm; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,.12); font-family: Arial, Helvetica, sans-serif; }
+.bg-logos { display: flex; justify-content: center; align-items: center; gap: 4mm; margin-bottom: 2mm; }
+.bg-logos img { height: 16mm; width: auto; }
+.bg-title { text-align: center; font-size: 13pt; margin: 0; text-decoration: underline; }
+.bg-sub { text-align: center; font-weight: 700; font-size: 11pt; text-decoration: underline; margin-bottom: 4mm; }
+.bg-sub-in { width: 100%; text-align: center; font-weight: 700; font-size: 11pt; border: 1px dashed #c7cfdd; border-radius: 6px; padding: 2px; }
+.bg-h { font-size: 10.5pt; text-decoration: underline; margin: 4mm 0 2mm; }
+.bg-pools { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3mm; font-size: 10pt; }
+.bg-pool b { display: block; margin-bottom: 1mm; }
+.bg-pool > div { line-height: 1.5; font-weight: 700; }
+.bg-games { display: flex; flex-direction: column; gap: 4px; margin-top: 2mm; font-size: .82rem; }
+.bg-game { display: flex; justify-content: space-between; align-items: center; gap: 6px; border: 1px solid var(--line, #e5e7eb); border-radius: 8px; padding: 3px 6px; font-weight: 400; }
+.bg-game i { color: #6b7280; font-style: normal; }
+.bg-ko { font-weight: 700; font-size: 10pt; margin: 0 0 3mm 5mm; padding-left: 4mm; }
+.bg-hasil { border: 1px dashed #c7cfdd; border-radius: 10px; padding: 8px; margin: 2mm 0 4mm; }
+.bg-hasil-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; margin: 6px 0; font-size: .85rem; }
+.bg-hasil-grid select { width: 100%; }
+.bg-rr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 12px; margin-top: 6px; }
+@media (max-width: 720px) { .bg-rr { grid-template-columns: 1fr; } }
+.bracket { width: 100%; height: auto; display: block; }
+@media (max-width: 720px) { .bg-pools { grid-template-columns: repeat(2, minmax(0, 1fr)); } .bagan-page { padding: 5mm; } }
+@media print {
+  @page baganpage { size: A4 portrait; margin: 12mm; }
+  body.print-bagan .app { page: baganpage; }
+  body.print-bagan .bagan-page { box-shadow: none; border-radius: 0; padding: 0; max-width: none; }
+}
