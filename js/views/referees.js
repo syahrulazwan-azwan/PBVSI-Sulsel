@@ -61,7 +61,7 @@
       }).join('');
     U.modal({
       title: 'Penugasan: ' + r.name, wide: true,
-      body: rows ? '<div class="table-wrap"><table class="tbl"><thead><tr><th>Waktu</th><th>No.</th><th>Pertandingan</th><th>Tugas</th></tr></thead><tbody>' + rows + '</tbody></table></div>' : '<p>Belum ada penugasan pada kejuaraan aktif.</p>'
+      body: rows ? '<div class="table-wrap"><table class="tbl"><thead><tr><th>Waktu</th><th>No.</th><th>Pertandingan</th><th>Tugas</th></tr></thead><tbody>' + rows + '</tbody></table></div>' : '<p>Belum ada penugasan.</p>'
     });
   }
 
@@ -70,7 +70,7 @@
     var refs = S.list('referees').sort(function (a, b) { return a.name.localeCompare(b.name); });
     var dut = duties(comp && comp.id);
     var html = '<div class="page-head"><h1>Wasit</h1><div class="row gap"><button class="btn" id="print">Cetak rekap</button><button class="btn primary" id="add">+ Wasit</button></div></div>' +
-      '<p class="muted no-print">Data wasit berlaku untuk semua kejuaraan. Penugasan diatur di setiap pertandingan (menu Jadwal). Rekap di bawah dihitung dari kejuaraan aktif' + (comp ? ': <b>' + esc(comp.name) + '</b>' : '') + '.</p>';
+      '<p class="muted no-print">Isi daftar wasit, pencatat, dan hakim garis di sini. Penugasannya dipilih saat membuat scoresheet (boleh juga dikosongkan lalu ditulis tangan).</p>';
     if (!refs.length) html += U.emptyState('Belum ada data wasit', 'Tambahkan wasit, pencatat dan hakim garis.');
     else {
       html += U.printTitle(comp, 'REKAP PENUGASAN WASIT', '<div>' + esc(comp ? comp.name : '') + '</div>');

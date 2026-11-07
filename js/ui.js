@@ -79,15 +79,19 @@
     a.download = filename;
     document.body.appendChild(a);
     a.click();
-    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+    setTimeout(function () { URL.revokeObjectURL(a.href); if (a.parentNode) a.parentNode.removeChild(a); }, 60000);
   }
 
   function pickFile(accept) {
     return new Promise(function (resolve) {
       var inp = document.createElement('input');
-      inp.type = 'file'; inp.accept = accept || '.json,application/json';
+      // iPhone/iPad sering tidak bisa memilih file .json bila "accept" diisi, jadi dikosongkan di iOS
+      var iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      inp.type = 'file'; if (!iOS) inp.accept = accept || '.json,application/json';
+      inp.style.display = 'none'; document.body.appendChild(inp);
       inp.onchange = function () {
         var f = inp.files[0];
+        setTimeout(function () { if (inp.parentNode) inp.parentNode.removeChild(inp); }, 0);
         if (!f) return resolve(null);
         var r = new FileReader();
         r.onload = function () { resolve({ name: f.name, text: r.result }); };
