@@ -27,6 +27,46 @@
     return { compName: c.name && c.name !== 'Scoresheet' ? c.name : '', city: c.city || '', hall: c.venue || '', ccode: c.countryCode || '' };
   }
 
+  /** Data kegiatan: diisi sekali, otomatis dipakai di setiap scoresheet */
+  function eventData() {
+    var ev = S.settings().event;
+    if (ev) return ev;
+    var lc = lastComp();
+    return { compName: lc.compName || '', city: lc.city || '', hall: lc.hall || '', ccode: lc.ccode || 'SLS', age: 'Senior', courts: '' };
+  }
+  function courtList(ev) {
+    return String((ev || eventData()).courts || '').split(/[,;/]/).map(function (x) { return x.trim(); }).filter(Boolean);
+  }
+  function editEvent() {
+    var ev = eventData(), n = S.list('matches').length;
+    return U.modal({
+      title: 'Data kegiatan',
+      body: '<p class="muted small">Diisi sekali saja. Semua scoresheet baru otomatis memakai data ini, jadi saat membuat scoresheet cukup isi tanggal dan jam.</p>' +
+        '<form id="evform" class="grid-form">' +
+        '<label class="span2">Nama kompetisi<input name="compName" value="' + esc(ev.compName) + '" placeholder="PORPROV SULSEL XVIII-2026"></label>' +
+        '<label>Kota (City)<input name="city" value="' + esc(ev.city) + '" placeholder="BONE"></label>' +
+        '<label>Hall / GOR<input name="hall" value="' + esc(ev.hall) + '" placeholder="GOR ..."></label>' +
+        '<label>Kode wilayah (Country code)<input name="ccode" value="' + esc(ev.ccode) + '" placeholder="SLS"></label>' +
+        '<label>Kelompok umur<select name="age">' + ['Senior', 'Junior', 'Youth'].map(function (a) { return '<option' + (ev.age === a ? ' selected' : '') + '>' + a + '</option>'; }).join('') + '</select></label>' +
+        '<label class="span2">Lapangan <small class="muted">(kosongkan bila hanya satu lapangan; bila lebih, tulis mis. <b>A, B</b>)</small><input name="courts" value="' + esc(ev.courts) + '" placeholder="A, B"></label>' +
+        (n ? '<label class="span2 row gap"><input type="checkbox" name="apply" checked style="width:auto"> Terapkan juga ke ' + n + ' scoresheet yang sudah ada</label>' : '') +
+        '</form>',
+      actions: [{ label: 'Batal', value: null }, {
+        label: 'Simpan', cls: 'primary', onClick: function (root) {
+          var d = U.formData(U.qs('#evform', root));
+          var rec = { compName: d.compName.trim(), city: d.city.trim(), hall: d.hall.trim(), ccode: d.ccode.trim(), age: d.age, courts: d.courts.trim() };
+          S.setSetting('event', rec);
+          S.setSetting('lastComp', { compName: rec.compName, city: rec.city, hall: rec.hall, ccode: rec.ccode });
+          var ap = U.qs('[name=apply]', root);
+          if (ap && ap.checked) S.list('matches').forEach(function (m) {
+            S.upsert('matches', Object.assign({}, m, { compName: rec.compName, city: rec.city, hall: rec.hall, ccode: rec.ccode, age: rec.age }));
+          });
+          U.toast('Data kegiatan tersimpan');
+        }
+      }]
+    });
+  }
+
   function nextNo() {
     var max = 0;
     S.list('matches').forEach(function (m) { var n = parseInt(m.no, 10); if (n > max) max = n; });
@@ -56,31 +96,37 @@
   function form(m) {
     var o = m.officials || {};
     var ROLES = VB.views.wasit.ROLES;
+    var courts = courtList();
+    if (m.court && courts.indexOf(m.court) < 0) courts = courts.concat([m.court]);
+    var ev = eventData();
     return '<form id="mform">' +
-      '<h4>Kompetisi</h4><div class="grid-form">' +
-      '<label class="span2">Nama kompetisi<input name="compName" value="' + esc(compField(m, 'compName')) + '" placeholder="BABAK KUALIFIKASI PORPROV BOLA VOLI INDOOR WILAYAH III"></label>' +
-      '<label>Kota (City/Site)<input name="city" value="' + esc(compField(m, 'city')) + '" placeholder="GOWA"></label>' +
-      '<label>Hall / Beach<input name="hall" value="' + esc(compField(m, 'hall')) + '" placeholder="DIVIF 3 KOSTRAD"></label>' +
-      '<label>Kode wilayah (Country code)<input name="ccode" value="' + esc(compField(m, 'ccode')) + '" placeholder="SLS"></label>' +
-      '</div><h4 class="mt">Pertandingan</h4><div class="grid-form">' +
-      '<label>Format<select name="format">' + U.formatOptions(m.format) + '</select></label>' +
-      '<label>Kategori<select name="category">' + U.catOptions(m.category) + '</select></label>' +
+      '<div class="ev-line muted small">📌 ' + esc(m.compName || '(nama kompetisi belum diisi)') + ' • ' + esc(m.city || '-') + ' • ' + esc(m.hall || '-') + '</div>' +
+      '<h4>Jadwal</h4><div class="grid-form">' +
+      '<label>Tanggal<input type="date" name="date" required value="' + esc(m.date) + '"></label>' +
+      '<label>Jam<input name="time" value="' + esc(m.time) + '" placeholder="08.00" autofocus></label>' +
+      (courts.length ? '<label>Lapangan<select name="court">' + courts.map(function (c) { return '<option' + (m.court === c ? ' selected' : '') + '>' + esc(c) + '</option>'; }).join('') + '</select></label>'
+        : '<input type="hidden" name="court" value="">') +
       '<label>No. pertandingan<input name="no" value="' + esc(m.no) + '"></label>' +
-      '<label>Tanggal<input type="date" name="date" value="' + esc(m.date) + '"></label>' +
-      '<label>Jam<input name="time" value="' + esc(m.time) + '" placeholder="08.30-10.00"></label>' +
-      '<label>Lapangan (Court)<input name="court" value="' + esc(m.court) + '" placeholder="I"></label>' +
-      '<label>Pool / Phase<input name="pool" value="' + esc(m.pool) + '" placeholder="A"></label>' +
-      '<label>Kelompok umur<select name="age">' + ['Senior', 'Junior', 'Youth'].map(function (a) { return '<option' + (m.age === a ? ' selected' : '') + '>' + a + '</option>'; }).join('') + '</select></label>' +
-      '<label>Tahap (khusus pantai)<input name="stage" list="stages" value="' + esc(m.stage) + '" placeholder="Pool Play"></label>' +
-      '<datalist id="stages"><option value="Main Draw"><option value="Qualification"><option value="Pool Play"><option value="Winner Bracket"><option value="Classification"><option value="Semi-Final"><option value="Finals"></datalist>' +
-      '<label>Kostum (warna baju)<input name="note" value="' + esc(m.note) + '" placeholder="Merah – Putih"></label>' +
       '</div><h4 class="mt">Tim</h4><div class="grid-form">' +
+      '<label>Kategori<select name="category">' + U.catOptions(m.category) + '</select></label>' +
+      '<label>Pool / Phase<input name="pool" value="' + esc(m.pool) + '" placeholder="otomatis dari tim"></label>' +
       '<label>Tim A<select name="teamA">' + teamOptions(m.format, m.category, m.teamA) + '</select></label>' +
       '<label>Tim B<select name="teamB">' + teamOptions(m.format, m.category, m.teamB) + '</select></label>' +
       '</div><p class="muted small" id="teamhint"></p>' +
-      '<h4 class="mt">Wasit &amp; petugas</h4><div class="grid-form">' +
+      '<h4 class="mt">Wasit &amp; petugas <small class="muted">(boleh dikosongkan, ditulis tangan)</small></h4><div class="grid-form">' +
       ROLES.map(function (r) { return '<label>' + r[1] + '<select name="off_' + r[0] + '">' + refOptions(o[r[0]]) + '</select></label>'; }).join('') +
-      '</div></form>';
+      '</div>' +
+      '<details class="mt"><summary class="muted">Lainnya (khusus pertandingan ini: nama kompetisi, kota, hall, format, kostum)</summary><div class="grid-form mt-s">' +
+      '<label class="span2">Nama kompetisi<input name="compName" value="' + esc(m.compName) + '"></label>' +
+      '<label>Kota (City/Site)<input name="city" value="' + esc(m.city) + '"></label>' +
+      '<label>Hall / Beach<input name="hall" value="' + esc(m.hall) + '"></label>' +
+      '<label>Kode wilayah<input name="ccode" value="' + esc(m.ccode) + '"></label>' +
+      '<label>Kelompok umur<select name="age">' + ['Senior', 'Junior', 'Youth'].map(function (a) { return '<option' + ((m.age || ev.age) === a ? ' selected' : '') + '>' + a + '</option>'; }).join('') + '</select></label>' +
+      '<label>Format<select name="format">' + U.formatOptions(m.format) + '</select></label>' +
+      '<label>Tahap (khusus pantai)<input name="stage" list="stages" value="' + esc(m.stage) + '" placeholder="Pool Play"></label>' +
+      '<datalist id="stages"><option value="Main Draw"><option value="Qualification"><option value="Pool Play"><option value="Winner Bracket"><option value="Classification"><option value="Semi-Final"><option value="Finals"></datalist>' +
+      '<label>Kostum (warna baju)<input name="note" value="' + esc(m.note) + '" placeholder="Merah – Putih"></label>' +
+      '</div></details></form>';
   }
 
   function edit(m, copy) {
@@ -88,10 +134,11 @@
     var base = baseComp();
     if (!m || (!m.id && !copy)) {
       // baru (boleh membawa isian awal, mis. dari menu Bagan: tim A/B & pool)
-      var lc = lastComp(), prev = S.list('matches').slice(-1)[0] || {};
-      m = Object.assign({ competitionId: base.id, no: nextNo(), date: U.today(), format: prev.format || 'indoor6', category: prev.category || 'PA', age: 'Senior', officials: {} }, lc, m || {});
+      var ev = eventData(), prev = S.list('matches').slice(-1)[0] || {};
+      m = Object.assign({ competitionId: base.id, no: nextNo(), date: prev.date || U.today(), time: '', format: 'indoor6', category: prev.category || 'PA', age: ev.age || 'Senior',
+        court: courtList(ev)[0] || '', officials: {}, compName: ev.compName, city: ev.city, hall: ev.hall, ccode: ev.ccode }, m || {});
     } else if (copy) {
-      m = Object.assign({}, m, { id: null, no: nextNo(), teamA: '', teamB: '', note: '' });
+      m = Object.assign({}, m, { id: null, no: nextNo(), teamA: '', teamB: '', note: '', time: '', pool: '' });
       m.officials = Object.assign({}, m.officials || {});
     }
     return U.modal({
@@ -106,11 +153,19 @@
           U.qs('#teamhint', root).innerHTML = n ? '' : 'Belum ada tim ' + esc(U.formatLabel(fsel.value)) + ' ' + esc(U.catLabel(csel.value)) + '. Tambahkan dulu di menu <a href="#/tim">Tim</a>.';
         }
         fsel.onchange = refresh; csel.onchange = refresh; refresh();
+        // pool otomatis dari tim yang dipilih
+        ['teamA', 'teamB'].forEach(function (k) {
+          U.qs('[name=' + k + ']', root).addEventListener('change', function () {
+            var t = S.get('teams', this.value), pf = U.qs('[name=pool]', root);
+            if (t && t.pool && (!pf.value || pf.dataset.auto)) { pf.value = t.pool; pf.dataset.auto = '1'; }
+          });
+        });
       },
       actions: [{ label: 'Batal', value: null }, {
         label: 'Simpan', cls: 'primary', onClick: function (root) {
           var d = U.formData(U.qs('#mform', root));
           if (d.teamA && d.teamA === d.teamB) { U.toast('Tim A dan Tim B tidak boleh sama', 'error'); return false; }
+          if (!d.date) { U.toast('Tanggal wajib diisi', 'error'); return false; }
           var rec = Object.assign({}, m);
           ['compName', 'city', 'hall', 'ccode', 'format', 'category', 'no', 'date', 'time', 'court', 'pool', 'age', 'stage', 'note', 'teamA', 'teamB'].forEach(function (k) { rec[k] = d[k]; });
           var off = {};
@@ -121,7 +176,6 @@
           rec.competitionId = rec.competitionId || base.id;
           if (!rec.id) delete rec.id;
           S.upsert('matches', rec);
-          S.setSetting('lastComp', { compName: d.compName, city: d.city, hall: d.hall, ccode: d.ccode });
           U.toast('Scoresheet tersimpan');
         }
       }]
@@ -160,10 +214,19 @@
       '<img src="' + P.mascot + '" alt="Maskot" class="hero-mascot"></section>';
   }
 
+  function evCard() {
+    var ev = eventData(), courts = courtList(ev);
+    if (!ev.compName) return '<div class="ev-card warn"><div><b>Isi data kegiatan dulu</b><div class="muted small">Nama kompetisi, kota, hall, dan lapangan diisi sekali saja, lalu otomatis masuk ke setiap scoresheet.</div></div><button class="btn primary" id="evbtn">Isi data kegiatan</button></div>';
+    return '<div class="ev-card"><div><div class="muted small">Data kegiatan (otomatis di setiap scoresheet)</div><b>' + esc(ev.compName) + '</b>' +
+      '<div class="small">' + esc(ev.city || '-') + ' • ' + esc(ev.hall || '-') + ' • Kode ' + esc(ev.ccode || '-') + ' • ' + esc(ev.age || 'Senior') +
+      ' • ' + (courts.length ? 'Lapangan ' + esc(courts.join(', ')) : '1 lapangan') + '</div></div><button class="btn small" id="evbtn">Ubah</button></div>';
+  }
+
   function render(el) {
     var list = filtered();
     var html = banner() +
       '<div class="page-head mt"><h1>Daftar Scoresheet</h1><div class="row gap"><button class="btn" id="blank">Blanko kosong</button><button class="btn primary" id="add">+ Buat scoresheet</button></div></div>' +
+      evCard() +
       '<div class="filters"><select id="ff">' + U.formatOptions(filt.format, true) + '</select>' +
       '<select id="fc">' + U.catOptions(filt.category, true) + '</select>' +
       '<input id="fq" type="search" placeholder="Cari tim / no. / pool" value="' + esc(filt.q) + '"></div>';
@@ -195,6 +258,7 @@
 
     U.qs('#add', el).onclick = function () { edit(null).then(function () { render(el); }); };
     U.qs('#blank', el).onclick = blankMenu;
+    U.qs('#evbtn', el).onclick = function () { editEvent().then(function () { render(el); }); };
     U.qs('#ff', el).onchange = function () { filt.format = this.value; render(el); };
     U.qs('#fc', el).onchange = function () { filt.category = this.value; render(el); };
     var fq = U.qs('#fq', el);
@@ -226,5 +290,5 @@
     });
   }
 
-  VB.views.jadwal = { render: render, edit: edit, state: state, names: names, teamLabel: teamLabel };
+  VB.views.jadwal = { render: render, edit: edit, state: state, names: names, teamLabel: teamLabel, eventData: eventData, editEvent: editEvent };
 })();

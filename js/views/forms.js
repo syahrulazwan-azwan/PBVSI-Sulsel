@@ -119,7 +119,7 @@
     pen.t(h.ccode[0], h.ccode[1], c.countryCode || '', { size: fs });
     if (m.date) { var dp = m.date.split('-'); pen.t(h.dateText[0], h.dateText[1], dp[2] + '-' + dp[1] + '-' + dp[0].slice(2), { size: fs }); }
     pen.t(h.timeText[0], h.timeText[1], m.time || '', { size: fs, max: 38 });
-    pen.t(h.hall[0], h.hall[1], c.venue || '', { size: fs, align: 'l', max: h.hallMax });
+    pen.t(h.hall[0], h.hall[1], (c.venue || '') + (m.court && m.format === 'indoor6' ? ' – LAPANGAN ' + m.court : ''), { size: fs, align: 'l', max: h.hallMax });
     pen.t(h.pool[0], h.pool[1], m.pool || '', { size: fs, max: 56 });
     pen.t(h.matchNo[0], h.matchNo[1], m.no || '', { size: fs + 1 });
     if (!m.blank) {
