@@ -22,7 +22,25 @@
   function loadPending() { try { return JSON.parse(localStorage.getItem(PEND_KEY) || '{}'); } catch (e) { return {}; } }
   function savePending() { try { localStorage.setItem(PEND_KEY, JSON.stringify(pending)); } catch (e) { /* abaikan */ } }
   function enc(id) { return String(id).replace(/[.#$\[\]\/]/g, '_'); }
-  function same(a, b) { return JSON.stringify(a == null ? null : a) === JSON.stringify(b == null ? null : b); }
+  /* Bentuk baku untuk membandingkan data lokal dengan server. Firebase:
+   * - menghapus null, '' tetap, tetapi {} dan [] kosong hilang,
+   * - mengubah objek berkunci angka ({1:x,2:y}) menjadi array ([null,x,y]),
+   * - mengurutkan kunci. Tanpa ini perbandingan selalu "beda" dan data dikirim berulang. */
+  function canon(x) {
+    if (x === null || x === undefined || x === '') return null;
+    if (typeof x !== 'object') return x;
+    var out = {}, n = 0;
+    Object.keys(x).sort().forEach(function (k) { var v = canon(x[k]); if (v !== null) { out[k] = v; n++; } });
+    return n ? out : null;
+  }
+  function same(a, b) { return JSON.stringify(canon(a)) === JSON.stringify(canon(b)); }
+  /** array dari Firebase -> objek biasa (untuk hasil bagan {pool:{1:id,2:id}}) */
+  function plain(x) {
+    if (x === null || typeof x !== 'object') return x;
+    var o = {};
+    Object.keys(x).forEach(function (k) { if (x[k] !== null && x[k] !== undefined) o[k] = plain(x[k]); });
+    return o;
+  }
   function clone(o) { return o == null ? null : JSON.parse(JSON.stringify(o)); }
 
   // ---------- status kecil di pojok ----------
@@ -67,7 +85,7 @@
       });
       var st = mirror.settings || {};
       if (!pending['settings/event'] && st.event && !same(db.settings.event, st.event)) { db.settings.event = clone(st.event); changed = true; }
-      if (!pending['settings/bagan'] && st.bagan && !same(db.settings.baganHasil, st.bagan)) { db.settings.baganHasil = clone(st.bagan); changed = true; }
+      if (!pending['settings/bagan'] && st.bagan && !same(db.settings.baganHasil, st.bagan)) { db.settings.baganHasil = plain(st.bagan); changed = true; }
       if (changed) S.save();
     } finally { applying = false; }
     if (changed && VB.app && VB.app.route && !document.querySelector('.modal-backdrop')) VB.app.route();
@@ -129,13 +147,15 @@
   }
 
   // ---------- stream dari server ----------
-  var es = null;
+  var es = null, lastBeat = Date.now();
   function connect() {
     if (es) try { es.close(); } catch (e) { /* abaikan */ }
+    lastBeat = Date.now();
     if (!window.EventSource) { poll(); return; }
     es = new EventSource(BASE + '.json');
     function onEvent(kind) {
       return function (ev) {
+        lastBeat = Date.now();
         var msg; try { msg = JSON.parse(ev.data); } catch (e) { return; }
         if (!msg) return;
         if (kind === 'put') setPath(msg.path, msg.data);
@@ -152,6 +172,8 @@
     }
     es.addEventListener('put', onEvent('put'));
     es.addEventListener('patch', onEvent('patch'));
+    es.addEventListener('keep-alive', function () { lastBeat = Date.now(); });
+    es.addEventListener('cancel', function () { status('🔴 Server menolak akses', 'err'); });
     es.onerror = function () { status(Object.keys(pending).length ? '🔴 Offline – perubahan menunggu' : '🔴 Offline', 'err'); };
     es.onopen = function () { online = true; flush(); };
   }
@@ -166,7 +188,17 @@
 
   window.addEventListener('online', function () { online = true; connect(); flush(); });
   window.addEventListener('offline', function () { online = false; status('🔴 Offline – perubahan disimpan di perangkat', 'err'); });
-  setInterval(flush, 15000);
+  // HP (terutama iPhone) sering memutus koneksi saat aplikasi di latar belakang:
+  // sambung ulang begitu dibuka lagi, atau bila server lama tidak memberi kabar.
+  function revive() {
+    if (!window.EventSource || !online) return;
+    if (!es || es.readyState === 2 || Date.now() - lastBeat > 75000) connect();
+    flush();
+  }
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') revive(); });
+  window.addEventListener('pageshow', function (e) { if (e.persisted) revive(); });
+  window.addEventListener('focus', revive);
+  setInterval(function () { flush(); if (document.visibilityState !== 'hidden') revive(); }, 15000);
   connect();
 
   VB.sync = { flush: flush, state: function () { return { ready: ready, pending: Object.keys(pending).length, mirror: !!mirror }; } };
