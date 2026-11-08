@@ -117,8 +117,8 @@
   }
   /** force=true: tampilkan isian PIN walau data sudah termuat (tombol di halaman Scoresheet) */
   function loadData(force) {
-    if (!/^https?:$/.test(location.protocol) || !window.fetch) return;
-    fetch(DATA_URL + '?t=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (enc) {
+    if (!/^https?:$/.test(location.protocol) || !window.fetch) return Promise.resolve();
+    return fetch(DATA_URL + '?t=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (enc) {
       if (!enc || !(enc.ct || enc.data)) return;
       var set = window.VBStore.settings();
       window.VBStore.setSetting('dataOpen', !!enc.data);
@@ -279,16 +279,18 @@
       }).catch(function () { lsSet(TOKEN_KEY, old); U.toast('Tidak bisa menghubungi GitHub. Cek internet.', 'error'); });
     });
   }
-  window.VBStore.onChange(schedulePush);
-  if (token()) setStatus('☁️ Sinkron aktif', 'ok');
+  var FB = !!(window.VB_CONFIG && window.VB_CONFIG.firebaseUrl);
+  if (!FB) { window.VBStore.onChange(schedulePush); if (token()) setStatus('☁️ Sinkron aktif', 'ok'); }
 
   // HP penonton: cek data baru tiap 45 detik saat aplikasi terbuka, dan saat aplikasi dibuka kembali
-  setInterval(function () { if (!document.hidden && !busy) loadData(false); }, 45000);
-  document.addEventListener('visibilitychange', function () { if (!document.hidden) loadData(false); });
+  if (!FB) {
+    setInterval(function () { if (!document.hidden && !busy) loadData(false); }, 45000);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) loadData(false); });
+  }
 
   VB.app = { route: route, loadData: loadData, publishData: publishData, syncSettings: syncSettings, pushNow: pushNow };
   route();
-  loadData(false);
+  if (!FB) loadData(false);   // dengan Firebase, data diatur oleh js/sync.js
 
   // Mode offline (PWA) – hanya saat dibuka lewat http/https (mis. GitHub Pages)
   if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
